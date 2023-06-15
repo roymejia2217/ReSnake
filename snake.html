@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Snake</title>
+  <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/296/296548.png">
+  <style>
+    /* Estilos para el tablero */
+    #tablero {
+      width: 400px;
+      height: 400px;
+      margin: 0 auto;
+      background-color: #222222;
+      position: relative;
+    }
+
+    /* Estilos para la serpiente */
+    .serpiente {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #99cc00;
+      border-radius: 50%;
+      box-sizing: border-box;
+      transition: 0.2s;
+    }
+
+    /* Estilos para la fruta */
+    #fruta {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #ff5a5f;
+      border-radius: 50%;
+      box-sizing: border-box;
+      transition: 0.2s;
+    }
+
+    /* Estilos para la pantalla de Game Over */
+    #game-over {
+      display: none;
+      position: absolute;
+      top: 150px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+
+    #game-over h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #ff5a5f;
+    }
+
+    #game-over button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #99cc00;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    /* Estilos para el contador de puntos */
+    #puntuacion {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      color: #000000;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="tablero"></div>
+  <div id="game-over">
+    <h1>Game Over</h1>
+    <button onclick="reiniciarJuego()">Reiniciar</button>
+  </div>
+  <div id="puntuacion">Puntuación: 0</div>
+
+  <script>
+    // Obtenemos una referencia al tablero y a la pantalla de Game Over
+    const tablero = document.getElementById('tablero');
+    const gameOverScreen = document.getElementById('game-over');
+
+    // Configuración del tablero
+    const tamanoTablero = 20;
+    const tamanoCelda = tablero.offsetWidth / tamanoTablero;
+
+    // Variables del juego
+    let serpiente = [{ x: 10, y: 10 }];
+    let direccion = { x: 1, y: 0 };
+    let fruta = { x: 15, y: 10 };
+    let puntuacion = 0;
+    let intervaloJuego;
+
+    // Función para dibujar el tablero
+    function dibujarTablero() {
+      tablero.innerHTML = '';
+
+      // Dibujamos la serpiente
+      serpiente.forEach(segmento => {
+        const serpienteElemento = document.createElement('div');
+        serpienteElemento.style.left = segmento.x * tamanoCelda + 'px';
+        serpienteElemento.style.top = segmento.y * tamanoCelda + 'px';
+        serpienteElemento.classList.add('serpiente');
+        tablero.appendChild(serpienteElemento);
+      });
+
+      // Dibujamos la fruta
+      const frutaElemento = document.createElement('div');
+      frutaElemento.style.left = fruta.x * tamanoCelda + 'px';
+      frutaElemento.style.top = fruta.y * tamanoCelda + 'px';
+      frutaElemento.id = 'fruta';
+      tablero.appendChild(frutaElemento);
+
+      // Mostramos la puntuación actual
+      document.getElementById('puntuacion').innerText = `Puntuación: ${puntuacion}`;
+    }
+
+    // Función para mover la serpiente
+    function moverSerpiente() {
+      const cabeza = { x: serpiente[0].x + direccion.x, y: serpiente[0].y + direccion.y };
+      serpiente.unshift(cabeza);
+
+      // Verificamos si la serpiente ha comido la fruta
+      if (cabeza.x === fruta.x && cabeza.y === fruta.y) {
+        puntuacion++;
+        generarNuevaFruta();
+      } else {
+        serpiente.pop();
+      }
+
+      // Verificamos si la serpiente ha chocado consigo misma
+      if (verificarChoque()) {
+        clearInterval(intervaloJuego);
+        gameOverScreen.style.display = 'block';
+      }
+    }
+
+    // Función para generar una nueva fruta en una posición aleatoria
+    function generarNuevaFruta() {
+      fruta = {
+        x: Math.floor(Math.random() * tamanoTablero),
+        y: Math.floor(Math.random() * tamanoTablero)
+      };
+
+      // Verificamos que la fruta no aparezca en el cuerpo de la serpiente
+      if (serpiente.some(segmento => segmento.x === fruta.x && segmento.y === fruta.y)) {
+        generarNuevaFruta();
+      }
+    }
+
+    // Función para verificar si la serpiente ha chocado
+    function verificarChoque() {
+      const cabeza = serpiente[0];
+
+      // Verificamos si la serpiente ha chocado con los bordes del tablero
+      if (
+        cabeza.x < 0 || cabeza.x >= tamanoTablero ||
+        cabeza.y < 0 || cabeza.y >= tamanoTablero
+      ) {
+        return true;
+      }
+
+      // Verificamos si la serpiente ha chocado consigo misma
+      for (let i = 1; i < serpiente.length; i++) {
+        if (serpiente[i].x === cabeza.x && serpiente[i].y === cabeza.y) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    // Función para reiniciar el juego
+    function reiniciarJuego() {
+      serpiente = [{ x: 10, y: 10 }];
+      direccion = { x: 1, y: 0 };
+      fruta = { x: 15, y: 10 };
+      puntuacion = 0;
+      gameOverScreen.style.display = 'none';
+      clearInterval(intervaloJuego);
+      iniciarJuego();
+    }
+
+    // Función principal para iniciar el juego
+    function iniciarJuego() {
+      // Agregamos eventos de teclado para controlar la dirección de la serpiente
+      document.addEventListener('keydown', cambiarDireccion);
+
+      // Configuramos un intervalo para mover la serpiente cada 200 ms
+      intervaloJuego = setInterval(() => {
+        moverSerpiente();
+        dibujarTablero();
+      }, 200);
+
+      dibujarTablero();
+    }
+
+    // Función para cambiar la dirección de la serpiente
+    function cambiarDireccion(evento) {
+      const teclaPresionada = evento.key;
+
+      switch (teclaPresionada) {
+        case 'ArrowUp':
+          if (direccion.y !== 1) {
+            direccion = { x: 0, y: -1 };
+          }
+          break;
+        case 'ArrowDown':
+          if (direccion.y !== -1) {
+            direccion = { x: 0, y: 1 };
+          }
+          break;
+        case 'ArrowLeft':
+          if (direccion.x !== 1) {
+            direccion = { x: -1, y: 0 };
+          }
+          break;
+        case 'ArrowRight':
+          if (direccion.x !== -1) {
+            direccion = { x: 1, y: 0 };
+          }
+          break;
+      }
+    }
+
+    // Iniciamos el juego al cargar la página
+    iniciarJuego();
+  </script>
+</body>
+</html>
