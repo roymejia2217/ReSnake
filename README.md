@@ -40,7 +40,7 @@ La serpiente utiliza un sistema de wrap-around donde, al cruzar un borde del tab
 Puedes probar el juego desplegado en GitHub Pages en la siguiente URL:
 
 ```
-https://tuusuario.github.io/simplesnake/
+https://roymejia2217.github.io/simplesnake/
 ```
 
 Nota: Reemplaza "tuusuario" con tu nombre de usuario de GitHub una vez que hayas desplegado el proyecto.
@@ -58,7 +58,7 @@ Nota: Reemplaza "tuusuario" con tu nombre de usuario de GitHub una vez que hayas
 Clona el repositorio en tu máquina local:
 
 ```bash
-git clone https://github.com/tuusuario/simplesnake.git
+git clone https://github.com/roymejia2217/simplesnake.git
 ```
 
 Navega al directorio del proyecto:
@@ -215,7 +215,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/tuusuario/simplesnake.git
+git remote add origin https://github.com/roymejia2217/simplesnake.git
 git push -u origin main
 ```
 
