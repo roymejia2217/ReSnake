@@ -1,0 +1,19 @@
+{
+  "name": "snake-game-modern",
+  "version": "1.0.0",
+  "description": "Juego Snake moderno con arquitectura ECS, TypeScript y Vite",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["snake", "game", "typescript", "ecs", "vite"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
+  }
+}

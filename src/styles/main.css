@@ -1,0 +1,534 @@
+/**
+ * Estilos principales del juego
+ * Mantiene los colores originales con diseño moderno
+ * Totalmente responsivo para móviles y tablets
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  overflow: hidden;
+  /* Evita el scroll por rebote en iOS */
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+}
+
+#game-container {
+  position: relative;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #222222;
+  /* Evita selección de texto en toques */
+  -webkit-user-select: none;
+  user-select: none;
+  /* Evita el zoom en doble tap */
+  touch-action: manipulation;
+}
+
+#game-canvas {
+  display: block;
+  /* Hace que el canvas sea táctil */
+  touch-action: none;
+}
+
+#game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.95);
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  min-width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+#game-over h1 {
+  color: #ff5a5f;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#game-over p {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+#game-over button {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  background: #99cc00;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 1rem;
+}
+
+#game-over button:hover {
+  background: #88bb00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(153, 204, 0, 0.4);
+}
+
+#game-over button:active {
+  transform: translateY(0);
+}
+
+#score-panel {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+#pause-btn {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: #667eea;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  margin-top: 0.5rem;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#pause-btn:hover {
+  background: #5568d3;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+#pause-btn:active {
+  transform: scale(0.95);
+}
+
+#pause-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+#pause-btn.paused {
+  background: #99cc00;
+}
+
+#pause-btn.paused:hover {
+  background: #88bb00;
+}
+
+#pause-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.92);
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  min-width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  animation: fadeIn 0.3s ease-out;
+  z-index: 100;
+}
+
+#pause-overlay h2 {
+  color: #667eea;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#pause-overlay p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+#score {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+#high-score-value {
+  font-size: 1rem;
+  color: #666;
+  text-align: center;
+}
+
+/* Controles táctiles */
+.touch-controls {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  justify-items: center;
+}
+
+.controls-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.control-btn {
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #667eea;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.control-btn svg {
+  width: 32px;
+  height: 32px;
+}
+
+.control-btn:active {
+  background: #99cc00;
+  color: white;
+  transform: scale(0.95);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Posiciona el botón UP en el centro de la primera fila */
+.controls-grid > .control-btn {
+  grid-column: 1;
+  justify-self: center;
+}
+
+/* Responsive para tablets */
+@media (max-width: 768px) {
+  .touch-controls {
+    display: block;
+  }
+  
+  body {
+    padding: 15px;
+  }
+  
+  #app {
+    gap: 12px;
+  }
+  
+  #score-panel {
+    padding: 0.75rem 1.5rem;
+    min-width: 180px;
+  }
+  
+  #pause-btn {
+    width: 48px;
+    height: 48px;
+  }
+  
+  #pause-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Responsive para móviles */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+  
+  #app {
+    gap: 10px;
+  }
+  
+  #game-over h1 {
+    font-size: 1.5rem;
+  }
+  
+  #game-over p {
+    font-size: 1rem;
+  }
+  
+  #score {
+    font-size: 1.25rem;
+  }
+  
+  #score-panel {
+    padding: 0.6rem 1.2rem;
+    min-width: 160px;
+    gap: 0.3rem;
+  }
+  
+  #high-score-value {
+    font-size: 0.9rem;
+  }
+  
+  #pause-btn {
+    width: 45px;
+    height: 45px;
+  }
+  
+  #pause-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  #pause-overlay {
+    padding: 1.5rem 2rem;
+    min-width: 260px;
+  }
+  
+  #pause-overlay h2 {
+    font-size: 1.5rem;
+  }
+  
+  #pause-overlay p {
+    font-size: 1rem;
+  }
+  
+  .control-btn {
+    width: 55px;
+    height: 55px;
+  }
+  
+  .control-btn svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Responsive para móviles pequeños */
+@media (max-width: 380px) {
+  body {
+    padding: 8px;
+  }
+  
+  #score {
+    font-size: 1.1rem;
+  }
+  
+  #score-panel {
+    padding: 0.5rem 1rem;
+    min-width: 140px;
+  }
+  
+  #pause-btn {
+    width: 42px;
+    height: 42px;
+  }
+  
+  #pause-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  #pause-overlay {
+    padding: 1.25rem 1.5rem;
+    min-width: 220px;
+  }
+  
+  #pause-overlay h2 {
+    font-size: 1.3rem;
+  }
+  
+  #pause-overlay p {
+    font-size: 0.9rem;
+  }
+  
+  .control-btn {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .control-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  #game-over {
+    padding: 1.5rem;
+    min-width: 240px;
+  }
+  
+  #game-over h1 {
+    font-size: 1.3rem;
+  }
+  
+  #game-over button {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Orientación horizontal en móviles */
+@media (max-height: 600px) and (orientation: landscape) {
+  body {
+    padding: 5px;
+  }
+  
+  #app {
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #score-panel {
+    order: -1;
+    min-width: 120px;
+    padding: 0.5rem 1rem;
+  }
+  
+  #score {
+    font-size: 1rem;
+  }
+  
+  #high-score-value {
+    font-size: 0.85rem;
+  }
+  
+  #pause-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  #pause-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  #pause-overlay {
+    padding: 1rem 1.5rem;
+    min-width: 200px;
+  }
+  
+  #pause-overlay h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  #pause-overlay p {
+    font-size: 0.85rem;
+  }
+  
+  .touch-controls {
+    margin-top: 0;
+    margin-left: 10px;
+  }
+  
+  .control-btn {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .control-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .controls-grid {
+    gap: 5px;
+  }
+  
+  .controls-row {
+    gap: 5px;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+#game-over {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Estados del botón */
+#restart-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+#restart-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+#restart-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
