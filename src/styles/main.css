@@ -413,10 +413,19 @@ body {
   
   body {
     padding: 15px;
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
   }
   
   #app {
     gap: 12px;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  
+  .game-screen {
+    padding: 15px;
+    padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 20px));
+    justify-content: flex-start;
   }
   
   #score-panel {
@@ -817,6 +826,11 @@ body {
   align-items: center;
   gap: 15px;
   padding: 20px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .overlay-screen {
@@ -1825,6 +1839,12 @@ body {
 }
 
 @media (max-width: 480px) {
+  .game-screen {
+    padding: 10px;
+    padding-bottom: max(15px, calc(env(safe-area-inset-bottom) + 15px));
+    gap: 10px;
+  }
+
   .romantic-message-container {
     height: 22px;
     padding: 0 0.3rem;
