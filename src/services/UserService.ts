@@ -7,13 +7,16 @@
 
 import type { Player } from '@/core/gameTypes';
 import { PLAYER_NAME_CONSTRAINTS } from '@/core/gameTypes';
+import { RomanticEasterEggService } from './RomanticEasterEggService';
 
 export class UserService {
   private readonly STORAGE_KEY = 'snake-current-player';
   private currentPlayer: Player | null = null;
+  private romanticEasterEgg: RomanticEasterEggService;
 
   constructor() {
     this.loadCurrentPlayer();
+    this.romanticEasterEgg = new RomanticEasterEggService();
   }
 
   /**
@@ -29,6 +32,13 @@ export class UserService {
       name: sanitizedName,
       createdAt: Date.now(),
     };
+
+    // Verificar si debe activar el easter egg romántico
+    if (this.romanticEasterEgg.shouldActivateForPlayer(sanitizedName)) {
+      this.romanticEasterEgg.activate();
+    } else {
+      this.romanticEasterEgg.deactivate();
+    }
 
     this.currentPlayer = player;
     this.saveCurrentPlayer();
@@ -157,5 +167,12 @@ export class UserService {
       obj.name.length >= PLAYER_NAME_CONSTRAINTS.MIN_LENGTH &&
       obj.name.length <= PLAYER_NAME_CONSTRAINTS.MAX_LENGTH
     );
+  }
+
+  /**
+   * Obtiene el servicio de easter egg romántico
+   */
+  getRomanticEasterEgg(): RomanticEasterEggService {
+    return this.romanticEasterEgg;
   }
 }

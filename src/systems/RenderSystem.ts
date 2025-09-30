@@ -14,6 +14,7 @@ import { Renderable } from '@/components/Renderable';
 import { GAME_CONFIG } from '@/config/constants';
 import { lerp } from '@/utils/AnimationHelper';
 import type { Velocity } from '@/components/Velocity';
+import type { RomanticEasterEggService } from '@/services/RomanticEasterEggService';
 
 export class RenderSystem implements System {
   private ctx: CanvasRenderingContext2D;
@@ -26,6 +27,9 @@ export class RenderSystem implements System {
   // Colores dinámicos del tema
   private snakeColor: string = GAME_CONFIG.COLORS.SNAKE;
   private foodColor: string = GAME_CONFIG.COLORS.FOOD;
+  
+  // Servicio de easter egg romántico
+  private romanticEasterEgg?: RomanticEasterEggService;
   
   constructor(
     private canvas: HTMLCanvasElement,
@@ -114,6 +118,7 @@ export class RenderSystem implements System {
     this.clearCanvas();
     this.renderSnake();
     this.renderFood();
+    this.updateRomanticMessageDOM();
   }
   
   /**
@@ -503,5 +508,49 @@ export class RenderSystem implements System {
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     } : null;
+  }
+
+  /**
+   * Establece el servicio de easter egg romántico
+   */
+  setRomanticEasterEgg(romanticEasterEgg: RomanticEasterEggService): void {
+    this.romanticEasterEgg = romanticEasterEgg;
+  }
+
+  /**
+   * Actualiza el contenedor HTML con los mensajes románticos
+   */
+  private updateRomanticMessageDOM(): void {
+    const container = document.getElementById('romantic-message-container');
+    const textElement = document.getElementById('romantic-message-text');
+    const emojiElement = document.getElementById('romantic-message-emoji');
+
+    if (!container || !textElement || !emojiElement) {
+      console.warn('Elementos del mensaje romántico no encontrados en el DOM');
+      return;
+    }
+
+    if (!this.romanticEasterEgg || !this.romanticEasterEgg.isEasterEggActive()) {
+      container.style.visibility = 'hidden';
+      container.style.opacity = '0';
+      return;
+    }
+
+    const message = this.romanticEasterEgg.getCurrentMessage();
+    
+    if (!message) {
+      // Ocultar pero mantener el espacio
+      container.style.visibility = 'hidden';
+      container.style.opacity = '0';
+      return;
+    }
+
+    // Mostrar el contenedor
+    container.style.visibility = 'visible';
+    container.style.opacity = '1';
+
+    // Actualizar el texto y emoji
+    textElement.textContent = message.text;
+    emojiElement.textContent = message.emoji;
   }
 }

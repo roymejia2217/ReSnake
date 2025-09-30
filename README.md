@@ -39,8 +39,12 @@ Implementación robusta de pausa que detiene completamente el game loop, deshabi
 **Responsividad Total**  
 El juego se adapta automáticamente a cualquier tamaño de pantalla, desde móviles pequeños hasta pantallas de escritorio grandes. En dispositivos móviles, se proporcionan controles táctiles con botones direccionales y soporte completo para gestos de deslizamiento (swipe). El layout se reorganiza en modo horizontal para aprovechar mejor el espacio disponible.
 
-**Persistencia de Datos**  
-Las puntuaciones más altas se guardan automáticamente en localStorage del navegador, permitiendo que los jugadores vean su récord personal incluso después de cerrar y volver a abrir el juego.
+**Sistema de Puntuaciones Avanzado**  
+- **Persistencia Local**: Las puntuaciones se guardan automáticamente en localStorage
+- **🏆 Leaderboard Global**: Sistema de puntuaciones en línea con Supabase
+- **🔄 Sincronización Automática**: Offline-first con sincronización en segundo plano
+- **🌐 Deploy Automático**: GitHub Pages con workflow CI/CD
+- **🔒 Seguridad Robusta**: Row Level Security y rate limiting
 
 **Mecánicas de Juego**  
 La serpiente utiliza un sistema de wrap-around donde, al cruzar un borde del tablero, aparece del lado opuesto en lugar de colisionar. El sistema de colisión detecta tanto colisiones con el propio cuerpo como la recolección de comida. Las animaciones de crecimiento utilizan interpolación easing para transiciones suaves.
@@ -58,9 +62,10 @@ O visita directamente: `https://roymejia2217.github.io/ReSnake/`
 
 ### Requisitos Previos
 
-- Node.js versión 16 o superior
+- Node.js versión 18 o superior
 - npm o yarn como gestor de paquetes
 - Git para clonar el repositorio
+- Cuenta en Supabase (para funcionalidades en línea)
 
 ### Pasos de Instalación
 
@@ -81,6 +86,15 @@ Instala todas las dependencias necesarias:
 ```bash
 npm install
 ```
+
+Configura Supabase para funcionalidades en línea (opcional):
+
+```bash
+cp env.example .env
+# Edita .env con tus credenciales de Supabase
+```
+
+**📖 Para configuración completa de Supabase, consulta: [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)**
 
 Inicia el servidor de desarrollo con hot module replacement:
 

@@ -70,6 +70,7 @@ class Game {
     this.setupOptionsHandlers();
     this.setupLanguageSync();
     this.updateAllTranslations();
+    this.setupSupabaseAvailability();
   }
   
   /**
@@ -89,8 +90,8 @@ class Game {
       this.menuService.navigateTo('options');
     });
     
-    btnLeaderboard?.addEventListener('click', () => {
-      this.updateLeaderboard();
+    btnLeaderboard?.addEventListener('click', async () => {
+      await this.updateLeaderboard('all');
       this.menuService.navigateTo('leaderboard');
     });
     
@@ -130,6 +131,36 @@ class Game {
     // LEADERBOARD
     document.getElementById('btn-back-from-leaderboard')?.addEventListener('click', () => {
       this.menuService.navigateBack();
+    });
+    
+    // Tabs del leaderboard (Local/Online)
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const tab = btn.getAttribute('data-tab');
+        
+        // Actualiza estado activo visualmente
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Actualiza el leaderboard según el tab seleccionado
+        await this.updateLeaderboardTab(tab as 'local' | 'online');
+      });
+    });
+    
+    // Filtros del leaderboard
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const mode = btn.getAttribute('data-mode') as GameMode | 'all';
+        
+        // Actualiza estado activo visualmente
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Actualiza el leaderboard con el filtro seleccionado
+        await this.updateLeaderboard(mode);
+      });
     });
     
     // GAME OVER
@@ -284,6 +315,27 @@ class Game {
       this.updateAllTranslations();
     });
   }
+
+  /**
+   * Configura la disponibilidad del botón "En línea" basado en Supabase
+   */
+  private setupSupabaseAvailability(): void {
+    // Verificar disponibilidad de Supabase después de un breve delay
+    setTimeout(() => {
+      const onlineTab = document.querySelector('[data-tab="online"]') as HTMLButtonElement;
+      if (onlineTab) {
+        // Verificar si Supabase está disponible
+        const isAvailable = this.leaderboardService.getSupabaseService().isAvailable();
+        onlineTab.disabled = !isAvailable;
+        
+        if (isAvailable) {
+          console.log('Supabase disponible - Botón "En línea" habilitado');
+        } else {
+          console.log('Supabase no disponible - Botón "En línea" deshabilitado');
+        }
+      }
+    }, 3000); // 3 segundos de delay para permitir la inicialización
+  }
   
   /**
    * Actualiza todas las traducciones en la página
@@ -323,6 +375,12 @@ class Game {
     this.engine?.start();
     this.isPaused = false;
     
+    // Mostrar mensaje especial romántico al iniciar el juego
+    const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+    if (romanticEasterEgg.isEasterEggActive()) {
+      romanticEasterEgg.showSpecialMessage('gameStart');
+    }
+    
     // Actualiza UI con modo actual y jugador
     this.updateModeDisplay();
     this.updatePlayerDisplay();
@@ -360,6 +418,9 @@ class Game {
     this.movementSystem = new MovementSystem(this.snake);
     const collisionSystem = new CollisionSystem(this.snake, this.food);
     const renderSystem = new RenderSystem(canvas, this.snake, this.food);
+    
+    // Configurar easter egg romántico en el sistema de renderizado
+    renderSystem.setRomanticEasterEgg(this.userService.getRomanticEasterEgg());
     
     // Configura el modo de juego
     const modeConfig = this.gameModeService.getCurrentConfig();
@@ -421,6 +482,12 @@ class Game {
     this.scoreService.increment();
     this.soundService.play('eat');
     
+    // Mostrar mensaje especial romántico al conseguir puntos
+    const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+    if (romanticEasterEgg.isEasterEggActive()) {
+      romanticEasterEgg.showSpecialMessage('score');
+    }
+    
     if (this.snake && this.food) {
       this.food.relocate(generateRandomPosition(this.snake.body), performance.now());
     }
@@ -447,9 +514,9 @@ class Game {
   }
   
   /**
-   * Muestra la pantalla de game over con estadísticas
+   * Muestra la pantalla de game over con estadísticas inteligentes
    */
-  private showGameOver(): void {
+  private async showGameOver(): Promise<void> {
     const finalScoreEl = document.getElementById('final-score');
     const finalModeEl = document.getElementById('final-mode');
     const recordInfoEl = document.getElementById('record-info');
@@ -465,19 +532,74 @@ class Game {
       finalModeEl.textContent = `${this.i18n.t('leaderboard.mode')}: ${modeConfig.name}`;
     }
     
-    // Muestra si es un nuevo récord para este modo
+    // Sistema inteligente de detección de récords (prioriza datos globales)
     if (recordInfoEl && this.currentPlayer) {
-      const bestScore = this.leaderboardService.getPlayerBestScore(
-        this.currentPlayer.id,
-        this.currentMode
-      );
-      
-      if (score >= bestScore) {
-        recordInfoEl.textContent = `🏆 ${this.i18n.t('game.record')}!`;
-        recordInfoEl.style.color = 'var(--color-snake)';
-      } else {
-        recordInfoEl.textContent = `${this.i18n.t('game.record')}: ${bestScore}`;
-        recordInfoEl.style.color = 'var(--panel-text-secondary)';
+      try {
+        // Verificar récord mundial usando datos globales
+        const isNewWorldRecord = await this.leaderboardService.isWorldRecord(score, this.currentMode);
+        const isNewPersonalRecord = this.leaderboardService.isNewPersonalRecord(
+          score, 
+          this.currentPlayer.id, 
+          this.currentMode
+        );
+        
+        if (isNewWorldRecord) {
+          // ¡NUEVO RÉCORD MUNDIAL!
+          recordInfoEl.textContent = `🏆 ${this.i18n.t('game.newWorldRecord')}!`;
+          recordInfoEl.style.color = 'var(--color-snake)';
+          recordInfoEl.style.fontWeight = 'bold';
+          recordInfoEl.style.animation = 'pulse 1s infinite';
+          
+          // Mostrar mensaje especial romántico para récord mundial
+          const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+          if (romanticEasterEgg.isEasterEggActive()) {
+            romanticEasterEgg.showSpecialMessage('record');
+          }
+        } else if (isNewPersonalRecord) {
+          // Nuevo récord personal
+          const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
+          recordInfoEl.textContent = `⭐ ${this.i18n.t('game.newPersonalRecord')}! (${this.i18n.t('game.worldRecord')}: ${currentRecord})`;
+          recordInfoEl.style.color = '#ffd700';
+          recordInfoEl.style.fontWeight = 'bold';
+          
+          // Mostrar mensaje especial romántico para récord personal
+          const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+          if (romanticEasterEgg.isEasterEggActive()) {
+            romanticEasterEgg.showSpecialMessage('record');
+          }
+        } else {
+          // No es récord, muestra información del récord actual
+          const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
+          const personalBest = this.leaderboardService.getPlayerBestScore(
+            this.currentPlayer.id, 
+            this.currentMode
+          );
+          
+          recordInfoEl.textContent = `${this.i18n.t('game.worldRecord')}: ${currentRecord} | ${this.i18n.t('game.personalBest')}: ${personalBest}`;
+          recordInfoEl.style.color = 'var(--panel-text-secondary)';
+          recordInfoEl.style.fontWeight = 'normal';
+          recordInfoEl.style.animation = 'none';
+        }
+      } catch (error) {
+        console.warn('Error verificando récords, usando datos locales:', error);
+        // Fallback a verificación local
+        const isNewLocalRecord = this.leaderboardService.isNewRecord(score, this.currentMode);
+        
+        if (isNewLocalRecord) {
+          recordInfoEl.textContent = `⭐ ${this.i18n.t('game.newPersonalRecord')}!`;
+          recordInfoEl.style.color = '#ffd700';
+          recordInfoEl.style.fontWeight = 'bold';
+        } else {
+          const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
+          const personalBest = this.leaderboardService.getPlayerBestScore(
+            this.currentPlayer.id, 
+            this.currentMode
+          );
+          
+          recordInfoEl.textContent = `${this.i18n.t('game.worldRecord')}: ${currentRecord} | ${this.i18n.t('game.personalBest')}: ${personalBest}`;
+          recordInfoEl.style.color = 'var(--panel-text-secondary)';
+          recordInfoEl.style.fontWeight = 'normal';
+        }
       }
     }
     
@@ -529,35 +651,159 @@ class Game {
   }
   
   /**
-   * Actualiza el leaderboard
+   * Actualiza el tab del leaderboard (Local/Online)
    */
-  private updateLeaderboard(): void {
+  private async updateLeaderboardTab(tab: 'local' | 'online'): Promise<void> {
+    if (tab === 'online') {
+      // Verificar si Supabase está disponible
+      if (this.leaderboardService && this.leaderboardService.getSupabaseService().isAvailable()) {
+        await this.updateGlobalLeaderboard('all');
+      } else {
+        // Si no está disponible, volver al tab local
+        const localTab = document.querySelector('[data-tab="local"]') as HTMLButtonElement;
+        localTab?.click();
+        return;
+      }
+    } else {
+      // Tab local
+      await this.updateLeaderboard('all');
+    }
+  }
+
+  /**
+   * Actualiza el leaderboard con sistema inteligente (prioriza datos globales)
+   */
+  private async updateLeaderboard(filterMode: GameMode | 'all' = 'all'): Promise<void> {
     const tbody = document.getElementById('leaderboard-body');
     const noScores = document.getElementById('no-scores');
+    const container = document.querySelector('.leaderboard-container');
     
-    if (!tbody || !noScores) return;
+    if (!tbody || !noScores || !container) return;
     
-    const topScores = this.leaderboardService.getTopScores(10);
+    // Verificar si estamos en tab "En línea" y Supabase está disponible
+    const onlineTab = document.querySelector('[data-tab="online"]') as HTMLButtonElement;
+    const isOnlineTab = onlineTab?.classList.contains('active');
     
-    if (topScores.length === 0) {
+    if (isOnlineTab && this.leaderboardService.getSupabaseService().isAvailable()) {
+      // Usar datos globales
+      await this.updateGlobalLeaderboard(filterMode);
+      return;
+    }
+    
+    // Usar datos locales (tab "Local" o Supabase no disponible)
+    let topScores: any[];
+    if (filterMode === 'all') {
+      topScores = this.leaderboardService.getTopScoresAllModes(20);
+    } else {
+      topScores = this.leaderboardService.getTopScores(20, filterMode);
+    }
+    
+    this.renderLeaderboardScores(topScores, tbody, noScores, container);
+  }
+
+  /**
+   * Renderiza las puntuaciones en el leaderboard (método reutilizable)
+   */
+  private renderLeaderboardScores(scores: any[], tbody: HTMLElement, noScores: HTMLElement, container: Element): void {
+    if (scores.length === 0) {
       tbody.innerHTML = '';
       noScores.style.display = 'block';
+      noScores.textContent = this.i18n.t('leaderboard.noScores');
+      container.classList.remove('has-more-content');
       return;
     }
     
     noScores.style.display = 'none';
     
-    tbody.innerHTML = topScores.map((entry, index) => {
+    // Genera el HTML de todas las puntuaciones
+    tbody.innerHTML = scores.map((entry, index) => {
       const modeConfig = this.gameModeService.getConfig(entry.mode);
+      const isTopThree = index < 3;
+      const positionClass = isTopThree ? `position position-${index + 1}` : 'position';
+      const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+      
       return `
-        <tr>
-          <td class="position">${index + 1}</td>
-          <td>${this.escapeHtml(entry.playerName)}</td>
-          <td>${entry.score}</td>
-          <td><span class="mode-badge">${modeConfig.name}</span></td>
+        <tr class="${isTopThree ? 'top-three' : ''}">
+          <td class="${positionClass}">${medal} ${index + 1}</td>
+          <td class="player-name">${this.escapeHtml(entry.playerName)}</td>
+          <td class="score">${entry.score}</td>
+          <td><span class="mode-badge mode-${entry.mode}">${modeConfig.name}</span></td>
         </tr>
       `;
     }).join('');
+    
+    // Detecta si hay más de 5 registros para mostrar el indicador de scroll
+    this.updateScrollIndicator(container, scores.length);
+    
+    // Configura el scroll suave
+    this.setupSmoothScroll(container);
+  }
+
+  /**
+   * Actualiza el leaderboard global desde Supabase
+   */
+  private async updateGlobalLeaderboard(filterMode: GameMode | 'all' = 'all'): Promise<void> {
+    const tbody = document.getElementById('leaderboard-body');
+    const noScores = document.getElementById('no-scores');
+    const container = document.querySelector('.leaderboard-container');
+    
+    if (!tbody || !noScores || !container) return;
+    
+    // Mostrar indicador de carga
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem;">Cargando puntuaciones globales...</td></tr>';
+    
+    try {
+      // Obtener puntuaciones globales
+      const globalScores = await this.leaderboardService.getGlobalLeaderboard(20, filterMode === 'all' ? undefined : filterMode);
+      
+      // Usar el método reutilizable para renderizar
+      this.renderLeaderboardScores(globalScores, tbody, noScores, container);
+      
+    } catch (error) {
+      console.error('Error cargando leaderboard global:', error);
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--color-error);">Error cargando puntuaciones globales</td></tr>';
+    }
+  }
+
+  /**
+   * Actualiza el indicador visual de scroll (simplificado)
+   */
+  private updateScrollIndicator(container: Element, totalScores: number): void {
+    // Solo mantenemos la clase para estilos CSS si es necesario
+    if (totalScores > 5) {
+      container.classList.add('has-more-content');
+    } else {
+      container.classList.remove('has-more-content');
+    }
+  }
+
+  /**
+   * Configura el scroll suave y comportamiento inteligente
+   */
+  private setupSmoothScroll(container: Element): void {
+    // Scroll suave al inicio
+    container.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Detecta cuando el usuario llega al final del scroll
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5;
+      
+      if (isAtBottom) {
+        // Removemos la clase cuando llega al final
+        container.classList.remove('has-more-content');
+      } else {
+        // Restauramos la clase si no está al final y hay más de 5 registros
+        const tbody = container.querySelector('tbody');
+        if (tbody && tbody.children.length > 5) {
+          container.classList.add('has-more-content');
+        }
+      }
+    };
+    
+    // Removemos listeners anteriores para evitar duplicados
+    container.removeEventListener('scroll', handleScroll);
+    container.addEventListener('scroll', handleScroll);
   }
   
   /**

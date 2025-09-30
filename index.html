@@ -163,6 +163,14 @@
           <button class="tab-btn" data-tab="online" data-i18n="leaderboard.online" disabled>En línea</button>
         </div>
 
+        <!-- Filtros por modo de juego -->
+        <div class="mode-filters">
+          <button class="filter-btn active" data-mode="all" data-i18n="leaderboard.allModes">Todos</button>
+          <button class="filter-btn" data-mode="classic" data-i18n="modes.classic">Clásico</button>
+          <button class="filter-btn" data-mode="speed" data-i18n="modes.speed">Velocidad</button>
+          <button class="filter-btn" data-mode="wall" data-i18n="modes.wall">Pared</button>
+        </div>
+
         <div class="leaderboard-container">
           <table class="leaderboard-table">
             <thead>
@@ -222,6 +230,14 @@
         <div id="pause-overlay" style="display: none;">
           <h2 data-i18n="game.paused">Pausado</h2>
           <p data-i18n="game.pauseMessage">Presiona el botón de pausa para continuar</p>
+        </div>
+      </div>
+
+      <!-- Contenedor de mensajes románticos -->
+      <div id="romantic-message-container" class="romantic-message-container">
+        <div class="romantic-message-content">
+          <span id="romantic-message-text" class="romantic-message-text"></span>
+          <span id="romantic-message-emoji" class="romantic-message-emoji"></span>
         </div>
       </div>
 
