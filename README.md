@@ -1,4 +1,4 @@
-# Snake Game - Modern Edition
+# ReSnake
 
 Implementación moderna del clásico juego Snake, desarrollada con TypeScript y Vite, utilizando una arquitectura ECS (Entity-Component-System) profesional.
 
