@@ -13,6 +13,7 @@ import { MovementSystem } from '@/systems/MovementSystem';
 import { CollisionSystem } from '@/systems/CollisionSystem';
 import { RenderSystem } from '@/systems/RenderSystem';
 import { ScoreService } from '@/services/ScoreService';
+import { SoundService } from '@/services/SoundService';
 import { generateRandomPosition } from '@/utils/helpers';
 import { GAME_CONFIG } from '@/config/constants';
 import './styles/main.css';
@@ -26,12 +27,14 @@ class Game {
   private snake: Snake;
   private food: Food;
   private scoreService: ScoreService;
+  private soundService: SoundService;
   private inputSystem?: InputSystem;
   private isPaused = false;
   
   constructor() {
     this.engine = new GameEngine();
     this.scoreService = new ScoreService();
+    this.soundService = new SoundService();
     
     // Inicializa entidades en el centro del tablero
     const initialPosition = new Position(
@@ -80,8 +83,9 @@ class Game {
     const restartBtn = document.getElementById('restart-btn');
     const gameOverScreen = document.getElementById('game-over');
     const pauseBtn = document.getElementById('pause-btn');
+    const soundBtn = document.getElementById('sound-btn');
     
-    if (!restartBtn || !gameOverScreen || !pauseBtn) {
+    if (!restartBtn || !gameOverScreen || !pauseBtn || !soundBtn) {
       throw new Error('UI elements not found');
     }
     
@@ -94,6 +98,14 @@ class Game {
     pauseBtn.addEventListener('click', () => {
       this.togglePause();
     });
+    
+    // Maneja el botón de sonido
+    soundBtn.addEventListener('click', () => {
+      this.toggleSound();
+    });
+    
+    // Establece el estado inicial del botón de sonido
+    this.updateSoundButtonUI();
     
     // Atajo de teclado para pausa (Espacio o P)
     document.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -123,6 +135,7 @@ class Game {
    */
   private handleFoodEaten(): void {
     this.scoreService.increment();
+    this.soundService.play('eat');
     this.food.relocate(generateRandomPosition(this.snake.body), performance.now());
   }
   
@@ -131,6 +144,7 @@ class Game {
    */
   private handleGameOver(): void {
     this.engine.stop();
+    this.soundService.play('gameover');
     
     const gameOverScreen = document.getElementById('game-over');
     const finalScore = document.getElementById('final-score');
@@ -220,6 +234,45 @@ class Game {
       if (this.inputSystem) {
         this.inputSystem.disable();
       }
+    }
+  }
+  
+  /**
+   * Alterna el estado del sonido
+   */
+  private toggleSound(): void {
+    const isEnabled = this.soundService.toggle();
+    this.updateSoundButtonUI();
+    
+    // Feedback visual (opcional)
+    if (isEnabled) {
+      // Reproduce un sonido breve para confirmar
+      this.soundService.play('eat');
+    }
+  }
+  
+  /**
+   * Actualiza la UI del botón de sonido
+   */
+  private updateSoundButtonUI(): void {
+    const soundBtn = document.getElementById('sound-btn');
+    const soundOnIcon = document.getElementById('sound-on-icon');
+    const soundOffIcon = document.getElementById('sound-off-icon');
+    
+    if (!soundBtn || !soundOnIcon || !soundOffIcon) return;
+    
+    const isEnabled = this.soundService.isEnabled();
+    
+    if (isEnabled) {
+      soundBtn.classList.remove('muted');
+      soundOnIcon.style.display = 'block';
+      soundOffIcon.style.display = 'none';
+      soundBtn.setAttribute('aria-label', 'Silenciar sonido');
+    } else {
+      soundBtn.classList.add('muted');
+      soundOnIcon.style.display = 'none';
+      soundOffIcon.style.display = 'block';
+      soundBtn.setAttribute('aria-label', 'Activar sonido');
     }
   }
   
