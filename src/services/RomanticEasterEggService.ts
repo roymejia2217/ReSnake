@@ -134,12 +134,12 @@ const SPECIAL_MESSAGES = {
       duration: 4000
     },
     {
-      text: "¡Vamos mi hermosa! ¡Tú puedes!",
+      text: "¡Vamos mi negrita linda, tú puedes!",
       emoji: "💖",
       duration: 4000
     },
     {
-      text: "¡Dale mi amor! ¡Eres increíble!",
+      text: "¡Dale mi amor, que maravilla!",
       emoji: "💝",
       duration: 4000
     },
