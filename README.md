@@ -1,6 +1,6 @@
 # Snake Game - Modern Edition
 
-Implementación moderna del clásico juego Snake, desarrollada con TypeScript y Vite, utilizando una arquitectura ECS (Entity-Component-System) profesional. Este proyecto demuestra la aplicación de principios SOLID, DRY y KISS en el desarrollo de videojuegos web.
+Implementación moderna del clásico juego Snake, desarrollada con TypeScript y Vite, utilizando una arquitectura ECS (Entity-Component-System) profesional.
 
 ## Descripción del Proyecto
 
