@@ -18,9 +18,9 @@ Este juego Snake ha sido diseñado desde cero siguiendo las mejores prácticas d
 
 El proyecto incluye características modernas como animaciones fluidas, diseño responsivo completo para dispositivos móviles y desktop, sistema de pausa integrado, y persistencia de puntuaciones. Todo el código está escrito en TypeScript con tipado estricto para garantizar robustez y detectar errores en tiempo de desarrollo.
 
-## ✨ Características Principales
+## Características Principales
 
-### 🏗️ Arquitectura y Código
+### Arquitectura y Código
 
 **Arquitectura ECS Profesional**  
 El juego utiliza el patrón Entity-Component-System, donde las entidades (serpiente, comida) están compuestas por componentes reutilizables (posición, velocidad, renderizado), y los sistemas (movimiento, colisión, renderizado) procesan estas entidades de forma independiente. Esta separación permite modificar y extender funcionalidades sin afectar otras partes del código.
@@ -28,7 +28,7 @@ El juego utiliza el patrón Entity-Component-System, donde las entidades (serpie
 **Principios de Diseño**  
 Se aplicaron estrictamente los principios SOLID, especialmente Single Responsibility (cada clase tiene una única responsabilidad) y Dependency Inversion (los módulos dependen de abstracciones, no de implementaciones concretas). El código evita duplicaciones siguiendo DRY y mantiene soluciones simples siguiendo KISS.
 
-### 🎮 Funcionalidades del Juego
+### Funcionalidades del Juego
 
 **Diseño Visual Moderno**  
 El juego cuenta con renderizado en Canvas API utilizando gradientes radiales, sombras dinámicas y efectos visuales suaves. La serpiente tiene segmentos conectados con ojos que siguen la dirección del movimiento, mientras que la comida incluye animaciones de pulsación y efectos de aparición/desaparición.
@@ -45,11 +45,11 @@ Las puntuaciones más altas se guardan automáticamente en localStorage del nave
 **Mecánicas de Juego**  
 La serpiente utiliza un sistema de wrap-around donde, al cruzar un borde del tablero, aparece del lado opuesto en lugar de colisionar. El sistema de colisión detecta tanto colisiones con el propio cuerpo como la recolección de comida. Las animaciones de crecimiento utilizan interpolación easing para transiciones suaves.
 
-## 🎮 Demo en Vivo
+## Demo en Vivo
 
 Puedes probar el juego desplegado en GitHub Pages:
 
-**👉 [Jugar ReSnake Online](https://roymejia2217.github.io/ReSnake/)**
+**[Jugar ReSnake Online](https://roymejia2217.github.io/ReSnake/)**
 
 O visita directamente: `https://roymejia2217.github.io/ReSnake/`
 
