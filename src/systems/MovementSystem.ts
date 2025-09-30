@@ -1,6 +1,6 @@
 /**
  * Sistema de Movimiento
- * Maneja el movimiento de la serpiente con wrapping en los bordes
+ * Maneja el movimiento de la serpiente con soporte para múltiples modos
  * Principio: Single Responsibility (SOLID)
  */
 
@@ -13,6 +13,8 @@ import { GAME_CONFIG } from '@/config/constants';
 export class MovementSystem implements System {
   private accumulator = 0;
   private moveInterval: number = GAME_CONFIG.INITIAL_SPEED;
+  private hasWallCollision: boolean = false;
+  private onWallCollision?: () => void;
   
   constructor(private snake: Snake) {}
   
@@ -39,15 +41,30 @@ export class MovementSystem implements System {
     const head = this.snake.head;
     const newHead = head.add(velocity);
     
-    // Wrapping: la serpiente aparece del otro lado
-    this.wrapPosition(newHead);
+    // Modo Pared: verifica colisión con bordes
+    if (this.hasWallCollision && this.checkWallCollision(newHead)) {
+      this.onWallCollision?.();
+      return;
+    }
+    
+    // Modo Clásico: wrapping en los bordes
+    if (!this.hasWallCollision) {
+      this.wrapPosition(newHead);
+    }
     
     this.snake.move(newHead);
   }
   
   /**
+   * Verifica si hay colisión con las paredes
+   */
+  private checkWallCollision(position: Position): boolean {
+    const size = GAME_CONFIG.BOARD_SIZE;
+    return position.x < 0 || position.x >= size || position.y < 0 || position.y >= size;
+  }
+  
+  /**
    * Hace wrap de la posición en los bordes del tablero
-   * Comportamiento diferente al original que tenía colisión con bordes
    */
   private wrapPosition(position: Position): void {
     const size = GAME_CONFIG.BOARD_SIZE;
@@ -63,5 +80,19 @@ export class MovementSystem implements System {
    */
   setSpeed(speed: number): void {
     this.moveInterval = speed;
+  }
+
+  /**
+   * Configura si el modo tiene colisión con paredes
+   */
+  setWallCollision(enabled: boolean): void {
+    this.hasWallCollision = enabled;
+  }
+
+  /**
+   * Callback cuando hay colisión con pared
+   */
+  setOnWallCollision(callback: () => void): void {
+    this.onWallCollision = callback;
   }
 }

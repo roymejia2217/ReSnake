@@ -1,7 +1,7 @@
 /**
  * Punto de entrada principal del juego
- * Integra todos los sistemas usando el patrón Facade
- * Principio: Composition over Inheritance
+ * Integra todos los sistemas con arquitectura de menús y modos de juego
+ * Principio: Composition over Inheritance, SOLID
  */
 
 import { GameEngine } from '@/core/Engine';
@@ -15,170 +15,323 @@ import { RenderSystem } from '@/systems/RenderSystem';
 import { ScoreService } from '@/services/ScoreService';
 import { SoundService } from '@/services/SoundService';
 import { ThemeService } from '@/services/ThemeService';
+import { I18nService } from '@/services/I18nService';
+import { UserService } from '@/services/UserService';
+import { GameModeService } from '@/services/GameModeService';
+import { MenuService } from '@/services/MenuService';
+import { LeaderboardService } from '@/services/LeaderboardService';
 import { generateRandomPosition } from '@/utils/helpers';
 import { GAME_CONFIG } from '@/config/constants';
+import type { GameMode, Player } from '@/core/gameTypes';
 import './styles/main.css';
 
-// Inicializa el tema INMEDIATAMENTE antes de cargar el DOM
-// Esto evita el flash de tema incorrecto
+// Inicializa servicios globales INMEDIATAMENTE
 const globalThemeService = new ThemeService();
+const globalI18nService = new I18nService();
 
 /**
- * Clase principal del juego
- * Orquesta todos los sistemas y entidades
+ * Clase principal del juego con sistema completo de menús
  */
 class Game {
-  private engine: GameEngine;
-  private snake: Snake;
-  private food: Food;
-  private scoreService: ScoreService;
-  private soundService: SoundService;
+  // Servicios
+  private i18n: I18nService;
   private themeService: ThemeService;
+  private soundService: SoundService;
+  private userService: UserService;
+  private gameModeService: GameModeService;
+  private menuService: MenuService;
+  private leaderboardService: LeaderboardService;
+  private scoreService: ScoreService;
+  
+  // Motor y entidades
+  private engine?: GameEngine;
+  private snake?: Snake;
+  private food?: Food;
   private inputSystem?: InputSystem;
+  private movementSystem?: MovementSystem;
+  
+  // Estado del juego
+  private currentPlayer?: Player;
+  private currentMode: GameMode = 'classic';
   private isPaused = false;
   
   constructor() {
-    this.engine = new GameEngine();
-    this.scoreService = new ScoreService();
+    // Inicializa servicios
+    this.i18n = globalI18nService;
+    this.themeService = globalThemeService;
     this.soundService = new SoundService();
-    this.themeService = globalThemeService; // Usa la instancia global
+    this.userService = new UserService();
+    this.gameModeService = new GameModeService(this.i18n);
+    this.menuService = new MenuService();
+    this.leaderboardService = new LeaderboardService();
+    this.scoreService = new ScoreService();
     
-    // Inicializa entidades en el centro del tablero
-    const initialPosition = new Position(
-      Math.floor(GAME_CONFIG.BOARD_SIZE / 2),
-      Math.floor(GAME_CONFIG.BOARD_SIZE / 2)
-    );
-    
-    this.snake = new Snake(initialPosition);
-    this.food = new Food(generateRandomPosition(this.snake.body));
-    this.food.startSpawnAnimation(performance.now());
-    
-    this.setupSystems();
-    this.setupUI();
+    this.setupMenus();
+    this.setupOptionsHandlers();
+    this.setupLanguageSync();
+    this.updateAllTranslations();
   }
   
   /**
-   * Configura todos los sistemas del juego
+   * Configura todos los menús y navegación
    */
-  private setupSystems(): void {
-    const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  private setupMenus(): void {
+    // MENÚ PRINCIPAL
+    const btnPlay = document.getElementById('btn-play');
+    const btnOptions = document.getElementById('btn-options');
+    const btnLeaderboard = document.getElementById('btn-leaderboard');
     
-    if (!canvas) {
-      throw new Error('Canvas element not found');
-    }
+    btnPlay?.addEventListener('click', () => {
+      this.menuService.navigateTo('game-mode-select');
+    });
     
-    this.inputSystem = new InputSystem(this.snake);
-    const movementSystem = new MovementSystem(this.snake);
-    const collisionSystem = new CollisionSystem(this.snake, this.food);
-    const renderSystem = new RenderSystem(canvas, this.snake, this.food);
+    btnOptions?.addEventListener('click', () => {
+      this.menuService.navigateTo('options');
+    });
     
-    // Configura callbacks de colisiones
-    collisionSystem.setOnFoodEaten(() => this.handleFoodEaten());
-    collisionSystem.setOnGameOver(() => this.handleGameOver());
+    btnLeaderboard?.addEventListener('click', () => {
+      this.updateLeaderboard();
+      this.menuService.navigateTo('leaderboard');
+    });
     
-    // Añade sistemas al motor en orden de ejecución
-    this.engine.addSystem(this.inputSystem);
-    this.engine.addSystem(movementSystem);
-    this.engine.addSystem(collisionSystem);
-    this.engine.addSystem(renderSystem);
-  }
-  
-  /**
-   * Configura la interfaz de usuario
-   */
-  private setupUI(): void {
-    const restartBtn = document.getElementById('restart-btn');
-    const gameOverScreen = document.getElementById('game-over');
-    const pauseBtn = document.getElementById('pause-btn');
-    const soundBtn = document.getElementById('sound-btn');
-    const themeBtn = document.getElementById('theme-btn');
+    // SELECCIÓN DE MODO
+    const modeCards = document.querySelectorAll('.mode-card');
+    modeCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const mode = card.getAttribute('data-mode') as GameMode;
+        if (mode) {
+          this.currentMode = mode;
+          this.gameModeService.setMode(mode);
+          this.menuService.navigateTo('player-name');
+        }
+      });
+    });
     
-    if (!restartBtn || !gameOverScreen || !pauseBtn || !soundBtn || !themeBtn) {
-      throw new Error('UI elements not found');
-    }
+    document.getElementById('btn-back-from-mode')?.addEventListener('click', () => {
+      this.menuService.navigateBack();
+    });
     
-    restartBtn.addEventListener('click', () => {
-      gameOverScreen.style.display = 'none';
+    // INGRESO DE NOMBRE
+    const playerNameForm = document.getElementById('player-name-form') as HTMLFormElement;
+    playerNameForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handlePlayerNameSubmit();
+    });
+    
+    document.getElementById('btn-back-from-name')?.addEventListener('click', () => {
+      this.menuService.navigateBack();
+    });
+    
+    // OPCIONES
+    document.getElementById('btn-back-from-options')?.addEventListener('click', () => {
+      this.menuService.navigateBack();
+    });
+    
+    // LEADERBOARD
+    document.getElementById('btn-back-from-leaderboard')?.addEventListener('click', () => {
+      this.menuService.navigateBack();
+    });
+    
+    // GAME OVER
+    document.getElementById('restart-btn')?.addEventListener('click', () => {
       this.restart();
     });
     
-    // Maneja el botón de pausa
-    pauseBtn.addEventListener('click', () => {
+    document.getElementById('menu-btn')?.addEventListener('click', () => {
+      this.menuService.clearHistory();
+      this.menuService.navigateTo('main-menu');
+    });
+    
+    // Pausa
+    document.getElementById('pause-btn')?.addEventListener('click', () => {
       this.togglePause();
     });
     
-    // Maneja el botón de sonido
-    soundBtn.addEventListener('click', () => {
-      this.toggleSound();
+    // Botón de salir
+    document.getElementById('exit-btn')?.addEventListener('click', () => {
+      this.showExitConfirmation();
     });
     
-    // Maneja el botón de tema
-    themeBtn.addEventListener('click', () => {
-      this.toggleTheme();
+    // Modal de confirmación de salida
+    document.getElementById('exit-confirm-btn')?.addEventListener('click', () => {
+      this.confirmExit();
     });
     
-    // Establece el estado inicial de los botones
-    this.updateSoundButtonUI();
-    this.updateThemeButtonUI();
+    document.getElementById('exit-cancel-btn')?.addEventListener('click', () => {
+      this.hideExitConfirmation();
+    });
     
-    // Atajo de teclado para pausa (Espacio o P)
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        this.hideExitConfirmation();
+      }
+    });
+    
+    // Atajo de teclado para pausa
     document.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.key === ' ' || event.key === 'p' || event.key === 'P') {
-        // Solo pausa si el juego está en curso (no en game over)
-        if (this.engine.getState() !== 'GAME_OVER' && this.engine.getState() !== 'IDLE') {
+        if (this.menuService.getCurrentScreen() === 'game') {
           event.preventDefault();
           this.togglePause();
         }
       }
     });
     
-    // Actualiza la puntuación en tiempo real
-    this.scoreService.setOnScoreChange(score => {
-      const scoreEl = document.getElementById('score');
-      if (scoreEl) {
-        scoreEl.textContent = `Puntuación: ${score}`;
+    // Inicia en el menú principal
+    this.menuService.navigateTo('main-menu');
+  }
+  
+  /**
+   * Maneja el envío del formulario de nombre
+   */
+  private handlePlayerNameSubmit(): void {
+    const input = document.getElementById('player-name-input') as HTMLInputElement;
+    const errorDiv = document.getElementById('name-error');
+    
+    if (!input || !errorDiv) return;
+    
+    const name = input.value.trim();
+    
+    try {
+      // Valida y crea el jugador
+      this.currentPlayer = this.userService.createPlayer(name);
+      
+      // Limpia error y comienza el juego
+      errorDiv.style.display = 'none';
+      input.value = '';
+      this.startNewGame();
+    } catch (error) {
+      // Muestra error de validación
+      errorDiv.textContent = error instanceof Error ? error.message : this.i18n.t('playerName.error');
+      errorDiv.style.display = 'block';
+      
+      // Aplica shake animation
+      input.classList.add('shake');
+      setTimeout(() => input.classList.remove('shake'), 500);
+    }
+  }
+  
+  /**
+   * Configura los manejadores de opciones
+   */
+  private setupOptionsHandlers(): void {
+    const toggleButtons = document.querySelectorAll('.toggle-btn');
+    
+    toggleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const option = btn.getAttribute('data-option');
+        const value = btn.getAttribute('data-value');
+        
+        if (!option || !value) return;
+        
+        // Actualiza estado activo visualmente
+        const group = btn.parentElement;
+        group?.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Procesa la opción
+        switch (option) {
+          case 'sound':
+            this.soundService.setEnabled(value === 'true');
+            break;
+          case 'theme':
+            this.themeService.setTheme(value as 'light' | 'dark');
+            break;
+          case 'language':
+            this.i18n.setLanguage(value as 'es' | 'en' | 'it');
+            this.updateAllTranslations();
+            break;
+        }
+      });
+    });
+    
+    // Sincroniza estado inicial
+    this.syncOptionsUI();
+  }
+  
+  /**
+   * Sincroniza el UI de opciones con el estado actual
+   */
+  private syncOptionsUI(): void {
+    // Sonido
+    const soundEnabled = this.soundService.isEnabled();
+    document.querySelectorAll('[data-option="sound"]').forEach(btn => {
+      const value = btn.getAttribute('data-value');
+      btn.classList.toggle('active', value === String(soundEnabled));
+    });
+    
+    // Tema
+    const theme = this.themeService.getTheme();
+    document.querySelectorAll('[data-option="theme"]').forEach(btn => {
+      const value = btn.getAttribute('data-value');
+      btn.classList.toggle('active', value === theme);
+    });
+    
+    // Idioma
+    const lang = this.i18n.getLanguage();
+    document.querySelectorAll('[data-option="language"]').forEach(btn => {
+      const value = btn.getAttribute('data-value');
+      btn.classList.toggle('active', value === lang);
+    });
+  }
+  
+  /**
+   * Configura la sincronización de idioma en tiempo real
+   */
+  private setupLanguageSync(): void {
+    this.i18n.onLanguageChange(() => {
+      this.updateAllTranslations();
+    });
+  }
+  
+  /**
+   * Actualiza todas las traducciones en la página
+   */
+  private updateAllTranslations(): void {
+    // Actualiza lang attribute del HTML
+    const htmlRoot = document.getElementById('html-root');
+    if (htmlRoot) {
+      htmlRoot.setAttribute('lang', this.i18n.getLanguage());
+    }
+    
+    // Actualiza todos los elementos con data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key) {
+        el.textContent = this.i18n.t(key);
       }
     });
     
-    // Muestra el high score inicial
-    this.updateHighScoreDisplay();
+    // Actualiza placeholders
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (key && el instanceof HTMLInputElement) {
+        el.placeholder = this.i18n.t(key);
+      }
+    });
   }
   
   /**
-   * Maneja cuando la serpiente come
+   * Inicia un nuevo juego con el modo y jugador seleccionados
    */
-  private handleFoodEaten(): void {
-    this.scoreService.increment();
-    this.soundService.play('eat');
-    this.food.relocate(generateRandomPosition(this.snake.body), performance.now());
+  private startNewGame(): void {
+    if (!this.currentPlayer) return;
+    
+    this.setupGame();
+    this.menuService.navigateTo('game');
+    this.engine?.start();
+    this.isPaused = false;
+    
+    // Actualiza UI con modo actual y jugador
+    this.updateModeDisplay();
+    this.updatePlayerDisplay();
   }
   
   /**
-   * Maneja el game over
+   * Configura el motor y entidades del juego
    */
-  private handleGameOver(): void {
-    this.engine.stop();
-    this.soundService.play('gameover');
-    
-    const gameOverScreen = document.getElementById('game-over');
-    const finalScore = document.getElementById('final-score');
-    const highScoreEl = document.getElementById('high-score-value');
-    
-    if (gameOverScreen) gameOverScreen.style.display = 'block';
-    
-    if (finalScore) {
-      finalScore.textContent = `Puntuación final: ${this.scoreService.getScore()}`;
-    }
-    
-    if (highScoreEl) {
-      highScoreEl.textContent = `Récord: ${this.scoreService.getHighScore()}`;
-    }
-  }
-  
-  /**
-   * Reinicia el juego
-   */
-  private restart(): void {
+  private setupGame(): void {
     // Crea nuevas entidades
     const initialPosition = new Position(
       Math.floor(GAME_CONFIG.BOARD_SIZE / 2),
@@ -195,20 +348,148 @@ class Game {
       this.inputSystem.dispose();
     }
     
-    // Crea un nuevo motor y reconfigura sistemas
+    // Crea nuevo motor y sistemas
     this.engine = new GameEngine();
-    this.setupSystems();
-    this.start();
+    
+    const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+    if (!canvas) {
+      throw new Error('Canvas element not found');
+    }
+    
+    this.inputSystem = new InputSystem(this.snake);
+    this.movementSystem = new MovementSystem(this.snake);
+    const collisionSystem = new CollisionSystem(this.snake, this.food);
+    const renderSystem = new RenderSystem(canvas, this.snake, this.food);
+    
+    // Configura el modo de juego
+    const modeConfig = this.gameModeService.getCurrentConfig();
+    this.movementSystem.setWallCollision(modeConfig.hasWallCollision);
+    this.movementSystem.setOnWallCollision(() => this.handleGameOver());
+    
+    // Configura callbacks de colisiones
+    collisionSystem.setOnFoodEaten(() => this.handleFoodEaten());
+    collisionSystem.setOnGameOver(() => this.handleGameOver());
+    
+    // Añade sistemas al motor
+    this.engine.addSystem(this.inputSystem);
+    this.engine.addSystem(this.movementSystem);
+    this.engine.addSystem(collisionSystem);
+    this.engine.addSystem(renderSystem);
+    
+    // Configura callback de puntuación
+    this.scoreService.setOnScoreChange(score => {
+      const scoreEl = document.getElementById('score');
+      if (scoreEl) {
+        scoreEl.textContent = `${this.i18n.t('game.score')}: ${score}`;
+      }
+    });
+    
+    // Configura incremento de velocidad si el modo lo requiere
+    if (modeConfig.hasSpeedIncrease) {
+      this.scoreService.setOnScoreIncrement(() => {
+        const newSpeed = this.gameModeService.calculateSpeed(this.scoreService.getScore());
+        this.movementSystem?.setSpeed(newSpeed);
+      });
+    }
   }
   
   /**
-   * Actualiza el display del high score
+   * Actualiza el display del modo de juego actual
    */
-  private updateHighScoreDisplay(): void {
-    const highScoreEl = document.getElementById('high-score-value');
-    if (highScoreEl) {
-      highScoreEl.textContent = `Récord: ${this.scoreService.getHighScore()}`;
+  private updateModeDisplay(): void {
+    const modeEl = document.getElementById('current-mode');
+    if (modeEl) {
+      const modeConfig = this.gameModeService.getCurrentConfig();
+      modeEl.textContent = modeConfig.name;
     }
+  }
+  
+  /**
+   * Actualiza el display del nombre del jugador
+   */
+  private updatePlayerDisplay(): void {
+    const playerNameEl = document.getElementById('player-name');
+    if (playerNameEl && this.currentPlayer) {
+      playerNameEl.textContent = this.currentPlayer.name;
+    }
+  }
+  
+  /**
+   * Maneja cuando la serpiente come
+   */
+  private handleFoodEaten(): void {
+    this.scoreService.increment();
+    this.soundService.play('eat');
+    
+    if (this.snake && this.food) {
+      this.food.relocate(generateRandomPosition(this.snake.body), performance.now());
+    }
+  }
+  
+  /**
+   * Maneja el game over
+   */
+  private handleGameOver(): void {
+    this.engine?.stop();
+    this.soundService.play('gameover');
+    
+    // Guarda la puntuación en el leaderboard
+    if (this.currentPlayer) {
+      this.leaderboardService.addScore(
+        this.currentPlayer,
+        this.scoreService.getScore(),
+        this.currentMode
+      );
+    }
+    
+    // Muestra pantalla de game over
+    this.showGameOver();
+  }
+  
+  /**
+   * Muestra la pantalla de game over con estadísticas
+   */
+  private showGameOver(): void {
+    const finalScoreEl = document.getElementById('final-score');
+    const finalModeEl = document.getElementById('final-mode');
+    const recordInfoEl = document.getElementById('record-info');
+    
+    const score = this.scoreService.getScore();
+    const modeConfig = this.gameModeService.getCurrentConfig();
+    
+    if (finalScoreEl) {
+      finalScoreEl.textContent = `${this.i18n.t('game.finalScore')}: ${score}`;
+    }
+    
+    if (finalModeEl) {
+      finalModeEl.textContent = `${this.i18n.t('leaderboard.mode')}: ${modeConfig.name}`;
+    }
+    
+    // Muestra si es un nuevo récord para este modo
+    if (recordInfoEl && this.currentPlayer) {
+      const bestScore = this.leaderboardService.getPlayerBestScore(
+        this.currentPlayer.id,
+        this.currentMode
+      );
+      
+      if (score >= bestScore) {
+        recordInfoEl.textContent = `🏆 ${this.i18n.t('game.record')}!`;
+        recordInfoEl.style.color = 'var(--color-snake)';
+      } else {
+        recordInfoEl.textContent = `${this.i18n.t('game.record')}: ${bestScore}`;
+        recordInfoEl.style.color = 'var(--panel-text-secondary)';
+      }
+    }
+    
+    this.menuService.navigateTo('game-over', false);
+  }
+  
+  /**
+   * Reinicia el juego con el mismo jugador y modo
+   */
+  private restart(): void {
+    this.menuService.navigateTo('game', false);
+    this.startNewGame();
   }
   
   /**
@@ -224,27 +505,23 @@ class Game {
     
     if (this.isPaused) {
       // Resume
-      this.engine.resume();
+      this.engine?.resume();
       this.isPaused = false;
-      pauseBtn.classList.remove('paused');
       pauseOverlay.style.display = 'none';
       pauseIcon.style.display = 'block';
       playIcon.style.display = 'none';
       
-      // Habilita el input
       if (this.inputSystem) {
         this.inputSystem.enable();
       }
     } else {
       // Pause
-      this.engine.pause();
+      this.engine?.pause();
       this.isPaused = true;
-      pauseBtn.classList.add('paused');
       pauseOverlay.style.display = 'block';
       pauseIcon.style.display = 'none';
       playIcon.style.display = 'block';
       
-      // Deshabilita el input
       if (this.inputSystem) {
         this.inputSystem.disable();
       }
@@ -252,86 +529,82 @@ class Game {
   }
   
   /**
-   * Alterna el estado del sonido
+   * Actualiza el leaderboard
    */
-  private toggleSound(): void {
-    const isEnabled = this.soundService.toggle();
-    this.updateSoundButtonUI();
+  private updateLeaderboard(): void {
+    const tbody = document.getElementById('leaderboard-body');
+    const noScores = document.getElementById('no-scores');
     
-    // Feedback visual (opcional)
-    if (isEnabled) {
-      // Reproduce un sonido breve para confirmar
-      this.soundService.play('eat');
+    if (!tbody || !noScores) return;
+    
+    const topScores = this.leaderboardService.getTopScores(10);
+    
+    if (topScores.length === 0) {
+      tbody.innerHTML = '';
+      noScores.style.display = 'block';
+      return;
+    }
+    
+    noScores.style.display = 'none';
+    
+    tbody.innerHTML = topScores.map((entry, index) => {
+      const modeConfig = this.gameModeService.getConfig(entry.mode);
+      return `
+        <tr>
+          <td class="position">${index + 1}</td>
+          <td>${this.escapeHtml(entry.playerName)}</td>
+          <td>${entry.score}</td>
+          <td><span class="mode-badge">${modeConfig.name}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+  
+  /**
+   * Escapa HTML para prevenir XSS
+   */
+  private escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  /**
+   * Muestra el modal de confirmación para salir del juego
+   */
+  private showExitConfirmation(): void {
+    const modal = document.getElementById('exit-confirmation-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+      // Pausa el juego mientras se muestra el modal
+      if (!this.isPaused) {
+        this.togglePause();
+      }
     }
   }
   
   /**
-   * Actualiza la UI del botón de sonido
+   * Oculta el modal de confirmación
    */
-  private updateSoundButtonUI(): void {
-    const soundBtn = document.getElementById('sound-btn');
-    const soundOnIcon = document.getElementById('sound-on-icon');
-    const soundOffIcon = document.getElementById('sound-off-icon');
-    
-    if (!soundBtn || !soundOnIcon || !soundOffIcon) return;
-    
-    const isEnabled = this.soundService.isEnabled();
-    
-    if (isEnabled) {
-      soundBtn.classList.remove('muted');
-      soundOnIcon.style.display = 'block';
-      soundOffIcon.style.display = 'none';
-      soundBtn.setAttribute('aria-label', 'Silenciar sonido');
-    } else {
-      soundBtn.classList.add('muted');
-      soundOnIcon.style.display = 'none';
-      soundOffIcon.style.display = 'block';
-      soundBtn.setAttribute('aria-label', 'Activar sonido');
+  private hideExitConfirmation(): void {
+    const modal = document.getElementById('exit-confirmation-modal');
+    if (modal) {
+      modal.style.display = 'none';
     }
   }
   
   /**
-   * Alterna el tema entre claro y oscuro
+   * Confirma la salida del juego
    */
-  private toggleTheme(): void {
-    this.themeService.toggle();
-    this.updateThemeButtonUI();
-  }
-  
-  /**
-   * Actualiza la UI del botón de tema
-   */
-  private updateThemeButtonUI(): void {
-    const themeBtn = document.getElementById('theme-btn');
-    const lightIcon = document.getElementById('light-icon');
-    const darkIcon = document.getElementById('dark-icon');
-    
-    if (!themeBtn || !lightIcon || !darkIcon) return;
-    
-    const isDark = this.themeService.isDark();
-    
-    if (isDark) {
-      lightIcon.style.display = 'block';
-      darkIcon.style.display = 'none';
-      themeBtn.setAttribute('aria-label', 'Cambiar a tema claro');
-    } else {
-      lightIcon.style.display = 'none';
-      darkIcon.style.display = 'block';
-      themeBtn.setAttribute('aria-label', 'Cambiar a tema oscuro');
-    }
-  }
-  
-  /**
-   * Inicia el juego
-   */
-  start(): void {
-    this.engine.start();
-    this.isPaused = false;
+  private confirmExit(): void {
+    this.hideExitConfirmation();
+    this.engine?.stop();
+    this.menuService.clearHistory();
+    this.menuService.navigateTo('main-menu');
   }
 }
 
 // Inicializa el juego cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
-  const game = new Game();
-  game.start();
+  new Game();
 });

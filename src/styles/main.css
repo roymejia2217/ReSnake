@@ -5,6 +5,15 @@
  * Soporta tema claro y oscuro
  */
 
+/* Fuente personalizada */
+@font-face {
+  font-family: 'Archivo Narrow';
+  src: url('/fonts/ArchivoNarrow-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Variables CSS para tema oscuro (por defecto) */
 :root,
 [data-theme="dark"] {
@@ -29,8 +38,8 @@
   /* Colores de juego */
   --color-snake: #99cc00;
   --color-food: #ff5a5f;
-  --color-accent: #667eea;
-  --color-accent-hover: #5568d3;
+  --color-accent: #1f8a57;
+  --color-accent-hover: #1a7a4d;
   
   /* Botones */
   --btn-primary-bg: #99cc00;
@@ -48,8 +57,8 @@
   --shadow-game: 0 10px 50px rgba(0, 0, 0, 0.5);
   --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.6);
-  --shadow-btn: 0 4px 12px rgba(102, 126, 234, 0.4);
-  --shadow-btn-hover: 0 6px 16px rgba(102, 126, 234, 0.5);
+  --shadow-btn: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-btn-hover: 0 6px 16px rgba(0, 0, 0, 0.3);
   --shadow-control: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-control-active: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
@@ -77,8 +86,8 @@
   /* Colores de juego más vibrantes para tema claro */
   --color-snake: #7cb342;
   --color-food: #ff5252;
-  --color-accent: #5e92f3;
-  --color-accent-hover: #4a7fd6;
+  --color-accent: #1f8a57;
+  --color-accent-hover: #1a7a4d;
   
   /* Botones */
   --btn-primary-bg: #7cb342;
@@ -96,8 +105,8 @@
   --shadow-game: 0 10px 40px rgba(0, 0, 0, 0.15);
   --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.1);
   --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.15);
-  --shadow-btn: 0 4px 12px rgba(94, 146, 243, 0.25);
-  --shadow-btn-hover: 0 6px 16px rgba(94, 146, 243, 0.35);
+  --shadow-btn: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-btn-hover: 0 6px 16px rgba(0, 0, 0, 0.15);
   --shadow-control: 0 4px 12px rgba(0, 0, 0, 0.12);
   --shadow-control-active: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
@@ -106,6 +115,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* Asegurar herencia de fuente en elementos específicos */
+button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, div, label {
+  font-family: inherit;
 }
 
 html {
@@ -114,7 +129,7 @@ html {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Archivo Narrow', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -197,7 +212,7 @@ body {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: bold;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-top: 1rem;
@@ -206,7 +221,6 @@ body {
 #game-over button:hover {
   background: var(--btn-primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(153, 204, 0, 0.4);
 }
 
 #game-over button:active {
@@ -322,7 +336,7 @@ body {
 
 #score {
   font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 600;
   color: var(--panel-text-primary);
   text-align: center;
   transition: color 0.3s ease;
@@ -450,9 +464,43 @@ body {
   #score-panel {
     padding: 0.6rem 1.2rem;
     min-width: 160px;
-    gap: 0.3rem;
   }
-  
+
+  .score-left-section {
+    gap: 0.5rem;
+  }
+
+  .score-logo {
+    max-height: 30px;
+  }
+
+  .player-name {
+    font-size: 0.75rem;
+  }
+
+  #score {
+    font-size: 0.95rem;
+  }
+
+  .current-mode {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.35rem;
+  }
+
+  .score-controls {
+    gap: 0.4rem;
+  }
+
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
   #high-score-value {
     font-size: 0.9rem;
   }
@@ -508,6 +556,41 @@ body {
   #score-panel {
     padding: 0.5rem 1rem;
     min-width: 140px;
+  }
+
+  .score-left-section {
+    gap: 0.4rem;
+  }
+
+  .score-logo {
+    max-height: 28px;
+  }
+
+  .player-name {
+    font-size: 0.7rem;
+  }
+
+  #score {
+    font-size: 0.9rem;
+  }
+
+  .current-mode {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.3rem;
+  }
+
+  .score-controls {
+    gap: 0.3rem;
+  }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .icon-btn svg {
+    width: 18px;
+    height: 18px;
   }
   
   #pause-btn,
@@ -653,6 +736,16 @@ body {
   }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
 #game-over {
   animation: fadeIn 0.3s ease-out;
 }
@@ -679,4 +772,793 @@ body {
 #restart-btn:hover::before {
   width: 300px;
   height: 300px;
+}
+
+/* ========================================
+   NUEVAS PANTALLAS Y MENÚS
+   ======================================== */
+
+/* Pantallas base */
+.screen {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.screen.screen-active {
+  opacity: 1;
+}
+
+.menu-screen {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.game-screen {
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+}
+
+.overlay-screen {
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+}
+
+/* Contenedor de menú */
+.menu-container {
+  background: var(--panel-bg);
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow-panel);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+/* Logo del juego */
+.game-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding: 1rem;
+}
+
+.game-logo {
+  max-width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.game-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Logo de opciones */
+.options-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+.options-logo {
+  max-width: 100%;
+  height: auto;
+  max-height: 60px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.options-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Títulos de pantalla */
+.screen-title {
+  font-size: 2rem;
+  color: var(--panel-text-primary);
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+/* Botones de menú */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--panel-bg);
+  color: var(--panel-text-primary);
+  border: 2px solid var(--overlay-border);
+}
+
+.menu-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.menu-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-btn-hover);
+  border-color: var(--color-accent);
+}
+
+.menu-btn-primary {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.menu-btn-primary:hover {
+  background: var(--color-accent-hover);
+}
+
+/* Botón de volver */
+.back-btn {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: var(--panel-text-secondary);
+  border: 2px solid var(--overlay-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: var(--overlay-border);
+  color: var(--panel-text-primary);
+}
+
+/* Cards de modo de juego */
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.mode-card {
+  background: var(--panel-bg);
+  border: 2px solid var(--overlay-border);
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+}
+
+.mode-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-btn);
+}
+
+.mode-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.mode-card h3 {
+  color: var(--panel-text-primary);
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.mode-card p {
+  color: var(--panel-text-secondary);
+  font-size: 0.8rem;
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* Formulario de nombre */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.text-input {
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-family: inherit;
+  border: 2px solid var(--overlay-border);
+  border-radius: 8px;
+  background: var(--canvas-bg);
+  color: var(--panel-text-primary);
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.text-input:focus {
+  border-color: var(--color-accent);
+}
+
+.text-input::placeholder {
+  color: var(--panel-text-secondary);
+}
+
+.error-message {
+  color: var(--color-food);
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: rgba(255, 90, 95, 0.1);
+  border-radius: 6px;
+  border: 1px solid var(--color-food);
+}
+
+/* Opciones */
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.option-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.option-label {
+  color: var(--panel-text-primary);
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.toggle-group-triple {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.toggle-btn {
+  padding: 0.75rem;
+  border: 2px solid var(--overlay-border);
+  border-radius: 8px;
+  background: var(--canvas-bg);
+  color: var(--panel-text-secondary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  border-color: var(--color-accent);
+}
+
+.toggle-btn.active {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+/* Leaderboard */
+.leaderboard-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--canvas-bg);
+  color: var(--panel-text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover:not(:disabled) {
+  background: var(--overlay-border);
+}
+
+.tab-btn.active {
+  background: var(--color-accent);
+  color: white;
+}
+
+.tab-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.leaderboard-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: var(--canvas-bg);
+  padding: 1rem;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th {
+  color: var(--panel-text-primary);
+  font-weight: 600;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 2px solid var(--overlay-border);
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.leaderboard-table td {
+  color: var(--panel-text-secondary);
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--overlay-border);
+  font-size: 0.95rem;
+}
+
+.leaderboard-table tr:hover td {
+  background: var(--overlay-border);
+}
+
+.leaderboard-table .position {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.leaderboard-table .mode-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--color-accent);
+  color: white;
+}
+
+.no-scores {
+  text-align: center;
+  padding: 2rem;
+  color: var(--panel-text-secondary);
+}
+
+/* Panel de puntuación en juego */
+#score-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 1rem 1.5rem;
+  background: var(--panel-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-panel);
+  transition: all 0.3s ease;
+}
+
+.score-left-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.score-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.score-logo {
+  max-width: 100%;
+  height: auto;
+  max-height: 40px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.score-logo:hover {
+  transform: scale(1.05);
+}
+
+.score-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.player-name {
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#score {
+  color: var(--panel-text-primary);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.current-mode {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--color-accent);
+  color: white;
+  margin-top: 0.1rem;
+}
+
+.score-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: var(--control-bg);
+  color: var(--control-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+  background: var(--color-accent);
+  color: white;
+  transform: scale(1.1);
+}
+
+.icon-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.exit-btn {
+  background: var(--btn-danger-bg);
+  color: white;
+}
+
+.exit-btn:hover {
+  background: var(--btn-danger-hover);
+  transform: scale(1.1);
+}
+
+/* Modal de confirmación */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background: var(--overlay-bg);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--shadow-overlay);
+  border: 2px solid var(--overlay-border);
+  animation: slideIn 0.3s ease-out;
+}
+
+.modal-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.modal-header h3 {
+  color: var(--color-food);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-body {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.modal-body p {
+  color: var(--overlay-text);
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+  .modal-actions .menu-btn {
+    min-width: 120px;
+  }
+
+  /* Responsive para modal */
+  @media (max-width: 480px) {
+    .modal-content {
+      padding: 1.5rem;
+      margin: 1rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.3rem;
+    }
+
+    .modal-body p {
+      font-size: 1rem;
+    }
+
+    .modal-actions {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .modal-actions .menu-btn {
+      min-width: 100%;
+    }
+  }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Game Over overlay */
+.overlay-content {
+  background: var(--overlay-bg);
+  padding: 3rem 2.5rem;
+  border-radius: 16px;
+  text-align: center;
+  min-width: 320px;
+  box-shadow: var(--shadow-overlay);
+  border: 2px solid var(--overlay-border);
+}
+
+.overlay-content h1 {
+  color: var(--color-food);
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 8px rgba(255, 90, 95, 0.3);
+}
+
+.game-over-stats {
+  margin-bottom: 2rem;
+}
+
+.game-over-stats p {
+  color: var(--panel-text-primary);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.game-over-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Responsive - Tablets y Móviles */
+@media (max-width: 768px) {
+  .game-logo-container {
+    margin-bottom: 2rem;
+    padding: 0.75rem;
+  }
+  
+  .game-logo {
+    max-height: 100px;
+  }
+  
+  .options-logo {
+    max-height: 50px;
+  }
+
+  .screen-title {
+    font-size: 1.75rem;
+  }
+
+  .menu-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .mode-cards {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .mode-card {
+    padding: 1rem;
+    min-height: 110px;
+  }
+
+  .mode-icon {
+    font-size: 2rem;
+  }
+
+  .mode-card h3 {
+    font-size: 1rem;
+  }
+
+  .mode-card p {
+    font-size: 0.75rem;
+  }
+
+  #score-panel {
+    padding: 0.75rem 1rem;
+  }
+
+  .score-left-section {
+    gap: 0.75rem;
+  }
+
+  .score-logo {
+    max-height: 35px;
+  }
+
+  .player-name {
+    font-size: 0.8rem;
+  }
+
+  #score {
+    font-size: 1rem;
+  }
+
+  .current-mode {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .score-controls {
+    gap: 0.5rem;
+  }
+
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .icon-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .overlay-content {
+    padding: 2rem 1.5rem;
+    min-width: 280px;
+  }
+
+  .overlay-content h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-logo-container {
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+  }
+  
+  .game-logo {
+    max-height: 80px;
+  }
+  
+  .options-logo {
+    max-height: 40px;
+  }
+
+  .menu-btn {
+    font-size: 1rem;
+    padding: 0.875rem 1.25rem;
+  }
+
+  .menu-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mode-cards {
+    gap: 0.5rem;
+  }
+
+  .mode-card {
+    padding: 0.75rem;
+    min-height: 100px;
+  }
+
+  .mode-icon {
+    font-size: 1.8rem;
+  }
+
+  .mode-card h3 {
+    font-size: 0.95rem;
+  }
+
+  .mode-card p {
+    font-size: 0.7rem;
+  }
+
+  .toggle-group-triple {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
 }

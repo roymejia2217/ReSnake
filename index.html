@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" id="html-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -13,80 +13,279 @@
 </head>
 <body>
   <div id="app">
-    <div id="score-panel">
-      <div id="score">Puntuación: 0</div>
-      <div id="high-score-value">Récord: 0</div>
-      <div class="control-buttons">
-        <button id="theme-btn" aria-label="Cambiar tema">
-          <svg id="light-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
-          </svg>
-          <svg id="dark-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
-            <path d="M9 2c-1.05 0-2.05.16-3 .46 4.06 1.27 7 5.06 7 9.54 0 4.48-2.94 8.27-7 9.54.95.3 1.95.46 3 .46 5.52 0 10-4.48 10-10S14.52 2 9 2z"/>
-          </svg>
-        </button>
-        <button id="sound-btn" aria-label="Silenciar sonido">
-          <svg id="sound-on-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-          </svg>
-          <svg id="sound-off-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
-            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-          </svg>
-        </button>
-        <button id="pause-btn" aria-label="Pausar juego">
-          <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-          </svg>
-          <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
     
-    <div id="game-container">
-      <canvas id="game-canvas"></canvas>
-      
-      <div id="game-over" style="display: none;">
-        <h1>Juego Terminado</h1>
-        <p id="final-score">Puntuación final: 0</p>
-        <p id="high-score-value">Récord: 0</p>
-        <button id="restart-btn">Reiniciar</button>
-      </div>
-      
-      <div id="pause-overlay" style="display: none;">
-        <h2>Pausado</h2>
-        <p>Presiona el botón de pausa para continuar</p>
-      </div>
-    </div>
-
-    <!-- Controles táctiles para móviles -->
-    <div id="touch-controls" class="touch-controls">
-      <div class="controls-grid">
-        <button class="control-btn" data-direction="UP" aria-label="Arriba">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-          </svg>
-        </button>
-        <div class="controls-row">
-          <button class="control-btn" data-direction="LEFT" aria-label="Izquierda">
+    <!-- ===== PANTALLA: MENÚ PRINCIPAL ===== -->
+    <div id="screen-main-menu" class="screen menu-screen">
+      <div class="menu-container">
+        <div class="game-logo-container">
+          <img src="/res/re-snake.png" alt="Snake Game" class="game-logo" />
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-play" class="menu-btn menu-btn-primary" data-i18n="menu.play">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/>
+              <path d="M8 5v14l11-7z"/>
             </svg>
+            Jugar
           </button>
-          <button class="control-btn" data-direction="DOWN" aria-label="Abajo">
+          <button id="btn-options" class="menu-btn" data-i18n="menu.options">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+              <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
             </svg>
+            Opciones
           </button>
-          <button class="control-btn" data-direction="RIGHT" aria-label="Derecha">
+          <button id="btn-leaderboard" class="menu-btn" data-i18n="menu.leaderboard">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+              <path d="M7.5 21H2V9h5.5v12zm7.25-18h-5.5v18h5.5V3zM22 11h-5.5v10H22V11z"/>
             </svg>
+            Mejores Puntuaciones
           </button>
         </div>
       </div>
     </div>
+
+    <!-- ===== PANTALLA: SELECCIÓN DE MODO DE JUEGO ===== -->
+    <div id="screen-game-mode-select" class="screen menu-screen" style="display: none;">
+      <div class="menu-container">
+        <div class="options-logo-container">
+          <img src="/res/re-snake2.png" alt="Snake Game" class="options-logo" />
+        </div>
+        <h2 class="screen-title" data-i18n="gameMode.title">Seleccionar Modo de Juego</h2>
+        <div class="mode-cards">
+          <button class="mode-card" data-mode="classic">
+            <div class="mode-icon">🐍</div>
+            <h3 data-i18n="gameMode.classic">Clásico</h3>
+            <p data-i18n="gameMode.classicDesc">Modo tradicional con atravesar paredes</p>
+          </button>
+          <button class="mode-card" data-mode="speed">
+            <div class="mode-icon">⚡</div>
+            <h3 data-i18n="gameMode.speed">Velocidad</h3>
+            <p data-i18n="gameMode.speedDesc">La velocidad aumenta con cada manzana</p>
+          </button>
+          <button class="mode-card" data-mode="wall">
+            <div class="mode-icon">🧱</div>
+            <h3 data-i18n="gameMode.wall">Pared</h3>
+            <p data-i18n="gameMode.wallDesc">Game over al tocar las paredes</p>
+          </button>
+        </div>
+        <button class="back-btn" id="btn-back-from-mode" data-i18n="gameMode.back">Volver</button>
+      </div>
+    </div>
+
+    <!-- ===== PANTALLA: INGRESO DE NOMBRE ===== -->
+    <div id="screen-player-name" class="screen menu-screen" style="display: none;">
+      <div class="menu-container">
+        <h2 class="screen-title" data-i18n="playerName.title">Ingresa tu Nombre</h2>
+        <form id="player-name-form" class="form-container">
+          <input 
+            type="text" 
+            id="player-name-input" 
+            class="text-input" 
+            placeholder="Nombre del jugador"
+            data-i18n-placeholder="playerName.placeholder"
+            maxlength="20"
+            minlength="2"
+            pattern="[a-zA-Z0-9 _\-]+"
+            required
+            autocomplete="off"
+          />
+          <div id="name-error" class="error-message" style="display: none;"></div>
+          <button type="submit" class="menu-btn menu-btn-primary" data-i18n="playerName.start">
+            Comenzar Partida
+          </button>
+          <button type="button" class="back-btn" id="btn-back-from-name" data-i18n="playerName.back">Volver</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== PANTALLA: OPCIONES ===== -->
+    <div id="screen-options" class="screen menu-screen" style="display: none;">
+      <div class="menu-container">
+        <div class="options-logo-container">
+          <img src="/res/re-snake2.png" alt="Snake Game" class="options-logo" />
+        </div>
+        <h2 class="screen-title" data-i18n="options.title">Opciones</h2>
+        <div class="options-container">
+          
+          <!-- Opción de Sonido -->
+          <div class="option-item">
+            <label class="option-label" data-i18n="options.sound">Sonido</label>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-option="sound" data-value="true">
+                <span data-i18n="options.soundOn">Activado</span>
+              </button>
+              <button class="toggle-btn" data-option="sound" data-value="false">
+                <span data-i18n="options.soundOff">Desactivado</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Opción de Tema -->
+          <div class="option-item">
+            <label class="option-label" data-i18n="options.theme">Tema</label>
+            <div class="toggle-group">
+              <button class="toggle-btn" data-option="theme" data-value="light">
+                <span data-i18n="options.themeLight">Claro</span>
+              </button>
+              <button class="toggle-btn active" data-option="theme" data-value="dark">
+                <span data-i18n="options.themeDark">Oscuro</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Opción de Idioma -->
+          <div class="option-item">
+            <label class="option-label" data-i18n="options.language">Idioma</label>
+            <div class="toggle-group toggle-group-triple">
+              <button class="toggle-btn active" data-option="language" data-value="es">
+                <span data-i18n="options.languageEs">Español</span>
+              </button>
+              <button class="toggle-btn" data-option="language" data-value="en">
+                <span data-i18n="options.languageEn">English</span>
+              </button>
+              <button class="toggle-btn" data-option="language" data-value="it">
+                <span data-i18n="options.languageIt">Italiano</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+        <button class="back-btn" id="btn-back-from-options" data-i18n="options.back">Volver</button>
+      </div>
+    </div>
+
+    <!-- ===== PANTALLA: LEADERBOARD ===== -->
+    <div id="screen-leaderboard" class="screen menu-screen" style="display: none;">
+      <div class="menu-container">
+        <h2 class="screen-title" data-i18n="leaderboard.title">Mejores Puntuaciones</h2>
+        
+        <div class="leaderboard-tabs">
+          <button class="tab-btn active" data-tab="local" data-i18n="leaderboard.local">Locales</button>
+          <button class="tab-btn" data-tab="online" data-i18n="leaderboard.online" disabled>En línea</button>
+        </div>
+
+        <div class="leaderboard-container">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th data-i18n="leaderboard.position">Pos</th>
+                <th data-i18n="leaderboard.player">Jugador</th>
+                <th data-i18n="leaderboard.score">Puntos</th>
+                <th data-i18n="leaderboard.mode">Modo</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <!-- Se llenará dinámicamente -->
+            </tbody>
+          </table>
+          <div id="no-scores" class="no-scores" style="display: none;">
+            <p data-i18n="leaderboard.noScores">No hay puntuaciones registradas</p>
+          </div>
+        </div>
+
+        <button class="back-btn" id="btn-back-from-leaderboard" data-i18n="leaderboard.back">Volver</button>
+      </div>
+    </div>
+
+    <!-- ===== PANTALLA: JUEGO ===== -->
+    <div id="screen-game" class="screen game-screen" style="display: none;">
+      <div id="score-panel">
+        <div class="score-left-section">
+          <div class="score-logo-container">
+            <img src="/res/re-snake2.png" alt="Snake Game" class="score-logo" />
+          </div>
+          <div class="score-info">
+            <div id="player-name" class="player-name"></div>
+            <div id="score" data-i18n-prefix="game.score">Puntuación: 0</div>
+            <div id="current-mode" class="current-mode"></div>
+          </div>
+        </div>
+        <div class="score-controls">
+          <button id="pause-btn" class="icon-btn" aria-label="Pausar juego">
+            <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+            </svg>
+            <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+          <button id="exit-btn" class="icon-btn exit-btn" aria-label="Salir del juego">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <div id="pause-overlay" style="display: none;">
+          <h2 data-i18n="game.paused">Pausado</h2>
+          <p data-i18n="game.pauseMessage">Presiona el botón de pausa para continuar</p>
+        </div>
+      </div>
+
+      <!-- Controles táctiles para móviles -->
+      <div id="touch-controls" class="touch-controls">
+        <div class="controls-grid">
+          <button class="control-btn" data-direction="UP" aria-label="Arriba">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+            </svg>
+          </button>
+          <div class="controls-row">
+            <button class="control-btn" data-direction="LEFT" aria-label="Izquierda">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/>
+              </svg>
+            </button>
+            <button class="control-btn" data-direction="DOWN" aria-label="Abajo">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+              </svg>
+            </button>
+            <button class="control-btn" data-direction="RIGHT" aria-label="Derecha">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PANTALLA: GAME OVER ===== -->
+    <div id="screen-game-over" class="screen overlay-screen" style="display: none;">
+      <div class="overlay-content">
+        <h1 data-i18n="game.gameOver">Juego Terminado</h1>
+        <div class="game-over-stats">
+          <p id="final-score" data-i18n-prefix="game.finalScore">Puntuación final: 0</p>
+          <p id="final-mode"></p>
+          <p id="record-info"></p>
+        </div>
+        <div class="game-over-buttons">
+          <button id="restart-btn" class="menu-btn menu-btn-primary" data-i18n="game.restart">Reiniciar</button>
+          <button id="menu-btn" class="menu-btn" data-i18n="game.menu">Menú Principal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL: CONFIRMACIÓN DE SALIDA ===== -->
+    <div id="exit-confirmation-modal" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 data-i18n="game.exitConfirm.title">¿Salir del Juego?</h3>
+        </div>
+        <div class="modal-body">
+          <p data-i18n="game.exitConfirm.message">¿Estás seguro de que quieres salir? Se perderá el progreso actual.</p>
+        </div>
+        <div class="modal-actions">
+          <button id="exit-confirm-btn" class="menu-btn menu-btn-primary" data-i18n="game.exitConfirm.yes">Sí, Salir</button>
+          <button id="exit-cancel-btn" class="menu-btn" data-i18n="game.exitConfirm.no">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
   </div>
   
   <script type="module" src="/src/main.ts"></script>
