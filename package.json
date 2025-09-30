@@ -1,7 +1,7 @@
 {
-  "name": "snake-game-modern",
+  "name": "resnake-game",
   "version": "1.0.0",
-  "description": "Juego Snake moderno con arquitectura ECS, TypeScript y Vite",
+  "description": "ReSnake - Juego Snake moderno con arquitectura ECS, TypeScript y Vite",
   "type": "module",
   "scripts": {
     "dev": "vite",

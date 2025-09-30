@@ -20,6 +20,10 @@ src/**/*.js
 *.sln
 *.sw?
 
+# Cursor IDE
+.cursor/
+!.cursor/
+
 # Logs
 logs
 *.log
