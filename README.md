@@ -43,7 +43,6 @@ Puedes probar el juego desplegado en GitHub Pages en la siguiente URL:
 https://roymejia2217.github.io/simplesnake/
 ```
 
-Nota: Reemplaza "tuusuario" con tu nombre de usuario de GitHub una vez que hayas desplegado el proyecto.
 
 ## Instalación y Configuración Local
 
@@ -440,23 +439,3 @@ Algunas ideas para extender el proyecto:
 - Temas visuales alternativos
 - Progressive Web App (PWA) con instalación offline
 - Sistema de logros y estadísticas
-
-## Recursos de Aprendizaje
-
-Si estás aprendiendo desarrollo de juegos o arquitectura de software, este proyecto demuestra:
-
-- Cómo estructurar un proyecto TypeScript moderno
-- Implementación práctica del patrón ECS
-- Manejo del game loop con requestAnimationFrame
-- Sistemas de entrada multiplataforma (teclado, táctil, gestos)
-- Renderizado avanzado con Canvas API
-- Arquitectura escalable y mantenible
-- Despliegue automatizado con CI/CD
-
-## Autor
-
-Desarrollado siguiendo las mejores prácticas de desarrollo profesional. El código sirve como referencia educativa y base para proyectos similares.
-
-## Agradecimientos
-
-Este proyecto demuestra cómo un juego simple puede implementarse con arquitectura profesional y principios sólidos de ingeniería de software, sirviendo tanto como entretenimiento como recurso educativo.
