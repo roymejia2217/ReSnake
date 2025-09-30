@@ -1,6 +1,16 @@
 # ReSnake
 
-Implementación moderna del clásico juego Snake, desarrollada con TypeScript y Vite, utilizando una arquitectura ECS (Entity-Component-System) profesional.
+<div align="center">
+  <img src="public/res/re-snake.png" alt="ReSnake Logo" width="300" height="auto">
+  
+  **Implementación moderna del clásico juego Snake**
+  
+  *Desarrollada con TypeScript y Vite, utilizando una arquitectura ECS (Entity-Component-System) profesional*
+  
+  [![Demo en Vivo](https://img.shields.io/badge/🎮_Demo_En_Vivo-Visitar-blue?style=for-the-badge&logo=github)](https://roymejia2217.github.io/ReSnake/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![Vite](https://img.shields.io/badge/Vite-5.0+-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
+</div>
 
 ## Descripción del Proyecto
 
@@ -8,9 +18,9 @@ Este juego Snake ha sido diseñado desde cero siguiendo las mejores prácticas d
 
 El proyecto incluye características modernas como animaciones fluidas, diseño responsivo completo para dispositivos móviles y desktop, sistema de pausa integrado, y persistencia de puntuaciones. Todo el código está escrito en TypeScript con tipado estricto para garantizar robustez y detectar errores en tiempo de desarrollo.
 
-## Características Principales
+## ✨ Características Principales
 
-### Arquitectura y Código
+### 🏗️ Arquitectura y Código
 
 **Arquitectura ECS Profesional**  
 El juego utiliza el patrón Entity-Component-System, donde las entidades (serpiente, comida) están compuestas por componentes reutilizables (posición, velocidad, renderizado), y los sistemas (movimiento, colisión, renderizado) procesan estas entidades de forma independiente. Esta separación permite modificar y extender funcionalidades sin afectar otras partes del código.
@@ -18,7 +28,7 @@ El juego utiliza el patrón Entity-Component-System, donde las entidades (serpie
 **Principios de Diseño**  
 Se aplicaron estrictamente los principios SOLID, especialmente Single Responsibility (cada clase tiene una única responsabilidad) y Dependency Inversion (los módulos dependen de abstracciones, no de implementaciones concretas). El código evita duplicaciones siguiendo DRY y mantiene soluciones simples siguiendo KISS.
 
-### Funcionalidades del Juego
+### 🎮 Funcionalidades del Juego
 
 **Diseño Visual Moderno**  
 El juego cuenta con renderizado en Canvas API utilizando gradientes radiales, sombras dinámicas y efectos visuales suaves. La serpiente tiene segmentos conectados con ojos que siguen la dirección del movimiento, mientras que la comida incluye animaciones de pulsación y efectos de aparición/desaparición.
@@ -35,13 +45,13 @@ Las puntuaciones más altas se guardan automáticamente en localStorage del nave
 **Mecánicas de Juego**  
 La serpiente utiliza un sistema de wrap-around donde, al cruzar un borde del tablero, aparece del lado opuesto en lugar de colisionar. El sistema de colisión detecta tanto colisiones con el propio cuerpo como la recolección de comida. Las animaciones de crecimiento utilizan interpolación easing para transiciones suaves.
 
-## Demo en Vivo
+## 🎮 Demo en Vivo
 
-Puedes probar el juego desplegado en GitHub Pages en la siguiente URL:
+Puedes probar el juego desplegado en GitHub Pages:
 
-```
-https://roymejia2217.github.io/simplesnake/
-```
+**👉 [Jugar ReSnake Online](https://roymejia2217.github.io/ReSnake/)**
+
+O visita directamente: `https://roymejia2217.github.io/ReSnake/`
 
 
 ## Instalación y Configuración Local
@@ -57,13 +67,13 @@ https://roymejia2217.github.io/simplesnake/
 Clona el repositorio en tu máquina local:
 
 ```bash
-git clone https://github.com/roymejia2217/simplesnake.git
+git clone https://github.com/roymejia2217/ReSnake.git
 ```
 
 Navega al directorio del proyecto:
 
 ```bash
-cd simplesnake
+cd ReSnake
 ```
 
 Instala todas las dependencias necesarias:
@@ -214,7 +224,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/roymejia2217/simplesnake.git
+git remote add origin https://github.com/roymejia2217/ReSnake.git
 git push -u origin main
 ```
 
@@ -241,7 +251,7 @@ El proceso completo toma aproximadamente 2-3 minutos. Puedes monitorear el progr
 
 ### Configuración del Base Path
 
-Si tu repositorio tiene un nombre diferente a "simplesnake", debes actualizar la configuración base en `vite.config.ts`:
+Si tu repositorio tiene un nombre diferente a "ReSnake", debes actualizar la configuración base en `vite.config.ts`:
 
 ```typescript
 export default defineConfig({
@@ -250,7 +260,7 @@ export default defineConfig({
 });
 ```
 
-Es importante que el nombre coincida exactamente con el nombre del repositorio, incluyendo mayúsculas y minúsculas. El path debe comenzar y terminar con una barra diagonal.
+**Nota:** Para este proyecto, la configuración ya está correctamente establecida como `base: '/ReSnake/'`. Es importante que el nombre coincida exactamente con el nombre del repositorio, incluyendo mayúsculas y minúsculas. El path debe comenzar y terminar con una barra diagonal.
 
 ## Personalización
 
