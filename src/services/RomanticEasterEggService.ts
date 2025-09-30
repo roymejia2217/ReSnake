@@ -162,6 +162,7 @@ export class RomanticEasterEggService {
   private currentMessage: RomanticMessage | null = null;
   private messageStartTime = 0;
   private hasShownRomanticMessage = false; // Control para mostrar solo un mensaje romántico por partida
+  private messageTimeout?: number; // Timeout del mensaje actual para poder cancelarlo
   
   /**
    * Verifica si un nombre de jugador debe activar el easter egg
@@ -199,6 +200,12 @@ export class RomanticEasterEggService {
     this.stopMessageRotation();
     this.currentMessage = null;
     this.hasShownRomanticMessage = false; // Reset al desactivar
+    
+    // Limpia el timeout del mensaje actual
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+      this.messageTimeout = undefined;
+    }
     
     console.log('💕 Easter Egg Romántico Desactivado 💕');
   }
@@ -285,6 +292,7 @@ export class RomanticEasterEggService {
   
   /**
    * Muestra un mensaje especial temporalmente
+   * Si ya hay un mensaje activo, lo reemplaza inmediatamente (KISS)
    */
   showSpecialMessage(event: 'score' | 'record' | 'gameStart'): void {
     if (!this.isActive) return;
@@ -292,15 +300,21 @@ export class RomanticEasterEggService {
     const specialMessage = this.getSpecialMessage(event);
     if (!specialMessage) return;
     
-    // Muestra el mensaje especial
+    // SOLUCIÓN: Cancela el timeout del mensaje anterior si existe
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+      this.messageTimeout = undefined;
+    }
+    
+    // Reemplaza el mensaje actual y resetea el temporizador (evita solapamiento)
     this.currentMessage = specialMessage;
     this.messageStartTime = performance.now();
     
-    // Después de la duración del mensaje especial, no mostrar nada más
-    // (ya que solo queremos un mensaje romántico por partida)
-    setTimeout(() => {
+    // Programa el ocultamiento del mensaje
+    this.messageTimeout = window.setTimeout(() => {
       if (this.isActive) {
         this.currentMessage = null;
+        this.messageTimeout = undefined;
       }
     }, specialMessage.duration);
   }

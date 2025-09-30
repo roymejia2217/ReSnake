@@ -520,6 +520,9 @@ class Game {
     const finalScoreEl = document.getElementById('final-score');
     const finalModeEl = document.getElementById('final-mode');
     const recordInfoEl = document.getElementById('record-info');
+    const romanticMessageContainer = document.getElementById('romantic-record-message');
+    const romanticMessageText = document.getElementById('romantic-record-text');
+    const romanticMessageEmoji = document.getElementById('romantic-record-emoji');
     
     const score = this.scoreService.getScore();
     const modeConfig = this.gameModeService.getCurrentConfig();
@@ -530,6 +533,11 @@ class Game {
     
     if (finalModeEl) {
       finalModeEl.textContent = `${this.i18n.t('leaderboard.mode')}: ${modeConfig.name}`;
+    }
+    
+    // Ocultar mensaje romántico por defecto
+    if (romanticMessageContainer) {
+      romanticMessageContainer.style.display = 'none';
     }
     
     // Sistema inteligente de detección de récords (prioriza datos globales)
@@ -550,11 +558,8 @@ class Game {
           recordInfoEl.style.fontWeight = 'bold';
           recordInfoEl.style.animation = 'pulse 1s infinite';
           
-          // Mostrar mensaje especial romántico para récord mundial
-          const romanticEasterEgg = this.userService.getRomanticEasterEgg();
-          if (romanticEasterEgg.isEasterEggActive()) {
-            romanticEasterEgg.showSpecialMessage('record');
-          }
+          // SOLUCIÓN: Mostrar mensaje romántico en game over
+          this.showRomanticRecordMessage(romanticMessageContainer, romanticMessageText, romanticMessageEmoji);
         } else if (isNewPersonalRecord) {
           // Nuevo récord personal
           const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
@@ -562,11 +567,8 @@ class Game {
           recordInfoEl.style.color = '#ffd700';
           recordInfoEl.style.fontWeight = 'bold';
           
-          // Mostrar mensaje especial romántico para récord personal
-          const romanticEasterEgg = this.userService.getRomanticEasterEgg();
-          if (romanticEasterEgg.isEasterEggActive()) {
-            romanticEasterEgg.showSpecialMessage('record');
-          }
+          // SOLUCIÓN: Mostrar mensaje romántico en game over
+          this.showRomanticRecordMessage(romanticMessageContainer, romanticMessageText, romanticMessageEmoji);
         } else {
           // No es récord, muestra información del récord actual
           const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
@@ -589,6 +591,9 @@ class Game {
           recordInfoEl.textContent = `⭐ ${this.i18n.t('game.newPersonalRecord')}!`;
           recordInfoEl.style.color = '#ffd700';
           recordInfoEl.style.fontWeight = 'bold';
+          
+          // SOLUCIÓN: Mostrar mensaje romántico en game over
+          this.showRomanticRecordMessage(romanticMessageContainer, romanticMessageText, romanticMessageEmoji);
         } else {
           const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
           const personalBest = this.leaderboardService.getPlayerBestScore(
@@ -604,6 +609,37 @@ class Game {
     }
     
     this.menuService.navigateTo('game-over', false);
+  }
+  
+  /**
+   * Muestra el mensaje romántico de récord en la pantalla de game over
+   * Método auxiliar para DRY (Don't Repeat Yourself)
+   */
+  private showRomanticRecordMessage(
+    container: HTMLElement | null,
+    textElement: HTMLElement | null, 
+    emojiElement: HTMLElement | null
+  ): void {
+    const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+    
+    // Verifica que el easter egg esté activo y los elementos existan
+    if (!romanticEasterEgg.isEasterEggActive() || !container || !textElement || !emojiElement) {
+      return;
+    }
+    
+    // Obtiene el mensaje romántico de récord
+    const romanticMessage = romanticEasterEgg.getSpecialMessage('record');
+    
+    if (!romanticMessage) {
+      return;
+    }
+    
+    // Actualiza el DOM con el mensaje
+    textElement.textContent = romanticMessage.text;
+    emojiElement.textContent = romanticMessage.emoji;
+    container.style.display = 'flex';
+    
+    console.log(`💕 Mensaje romántico de récord mostrado: "${romanticMessage.text}" 💕`);
   }
   
   /**
