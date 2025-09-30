@@ -23,6 +23,10 @@ export class RenderSystem implements System {
   // Cache de gradientes para optimización
   private snakeGradientCache: CanvasGradient | null = null;
   
+  // Colores dinámicos del tema
+  private snakeColor: string = GAME_CONFIG.COLORS.SNAKE;
+  private foodColor: string = GAME_CONFIG.COLORS.FOOD;
+  
   constructor(
     private canvas: HTMLCanvasElement,
     private snake: Snake,
@@ -42,7 +46,18 @@ export class RenderSystem implements System {
    */
   private setupCanvas(): void {
     this.updateCanvasSize();
-    this.canvas.style.backgroundColor = GAME_CONFIG.COLORS.BACKGROUND;
+    this.updateCanvasBackground();
+  }
+  
+  /**
+   * Actualiza el color de fondo del canvas según el tema
+   */
+  private updateCanvasBackground(): void {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const bgColor = computedStyle.getPropertyValue('--canvas-bg').trim();
+    if (bgColor) {
+      this.canvas.style.backgroundColor = bgColor;
+    }
   }
   
   /**
@@ -95,9 +110,27 @@ export class RenderSystem implements System {
    */
   update(_deltaTime: number, _entities: never[]): void {
     this.currentTime = performance.now();
+    this.updateThemeColors();
     this.clearCanvas();
     this.renderSnake();
     this.renderFood();
+  }
+  
+  /**
+   * Actualiza los colores según el tema actual
+   */
+  private updateThemeColors(): void {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const newSnakeColor = computedStyle.getPropertyValue('--color-snake').trim() || GAME_CONFIG.COLORS.SNAKE;
+    const newFoodColor = computedStyle.getPropertyValue('--color-food').trim() || GAME_CONFIG.COLORS.FOOD;
+    
+    // Si cambió el color, invalida el cache de gradientes y actualiza el canvas
+    if (newSnakeColor !== this.snakeColor || newFoodColor !== this.foodColor) {
+      this.snakeColor = newSnakeColor;
+      this.foodColor = newFoodColor;
+      this.invalidateGradientCache();
+      this.updateCanvasBackground(); // Actualiza el fondo del canvas
+    }
   }
   
   /**
@@ -414,16 +447,16 @@ export class RenderSystem implements System {
         centerY,
         radius
       );
-      gradient.addColorStop(0, this.lightenColor(GAME_CONFIG.COLORS.SNAKE, 0.25));
-      gradient.addColorStop(0.7, GAME_CONFIG.COLORS.SNAKE);
-      gradient.addColorStop(1, this.darkenColor(GAME_CONFIG.COLORS.SNAKE, 0.15));
+      gradient.addColorStop(0, this.lightenColor(this.snakeColor, 0.25));
+      gradient.addColorStop(0.7, this.snakeColor);
+      gradient.addColorStop(1, this.darkenColor(this.snakeColor, 0.15));
       this.snakeGradientCache = gradient;
     }
     return this.snakeGradientCache;
   }
   
   /**
-   * Obtiene o crea el gradiente para la comida (con cache)
+   * Obtiene o crea el gradiente para la comida (sin cache por animación)
    */
   private getFoodGradient(centerX: number, centerY: number, radius: number): CanvasGradient {
     const gradient = this.ctx.createRadialGradient(
@@ -434,9 +467,9 @@ export class RenderSystem implements System {
       centerY,
       radius
     );
-    gradient.addColorStop(0, this.lightenColor(GAME_CONFIG.COLORS.FOOD, 0.3));
-    gradient.addColorStop(0.7, GAME_CONFIG.COLORS.FOOD);
-    gradient.addColorStop(1, this.darkenColor(GAME_CONFIG.COLORS.FOOD, 0.2));
+    gradient.addColorStop(0, this.lightenColor(this.foodColor, 0.3));
+    gradient.addColorStop(0.7, this.foodColor);
+    gradient.addColorStop(1, this.darkenColor(this.foodColor, 0.2));
     return gradient;
   }
   

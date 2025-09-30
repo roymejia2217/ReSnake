@@ -14,9 +14,14 @@ import { CollisionSystem } from '@/systems/CollisionSystem';
 import { RenderSystem } from '@/systems/RenderSystem';
 import { ScoreService } from '@/services/ScoreService';
 import { SoundService } from '@/services/SoundService';
+import { ThemeService } from '@/services/ThemeService';
 import { generateRandomPosition } from '@/utils/helpers';
 import { GAME_CONFIG } from '@/config/constants';
 import './styles/main.css';
+
+// Inicializa el tema INMEDIATAMENTE antes de cargar el DOM
+// Esto evita el flash de tema incorrecto
+const globalThemeService = new ThemeService();
 
 /**
  * Clase principal del juego
@@ -28,6 +33,7 @@ class Game {
   private food: Food;
   private scoreService: ScoreService;
   private soundService: SoundService;
+  private themeService: ThemeService;
   private inputSystem?: InputSystem;
   private isPaused = false;
   
@@ -35,6 +41,7 @@ class Game {
     this.engine = new GameEngine();
     this.scoreService = new ScoreService();
     this.soundService = new SoundService();
+    this.themeService = globalThemeService; // Usa la instancia global
     
     // Inicializa entidades en el centro del tablero
     const initialPosition = new Position(
@@ -84,8 +91,9 @@ class Game {
     const gameOverScreen = document.getElementById('game-over');
     const pauseBtn = document.getElementById('pause-btn');
     const soundBtn = document.getElementById('sound-btn');
+    const themeBtn = document.getElementById('theme-btn');
     
-    if (!restartBtn || !gameOverScreen || !pauseBtn || !soundBtn) {
+    if (!restartBtn || !gameOverScreen || !pauseBtn || !soundBtn || !themeBtn) {
       throw new Error('UI elements not found');
     }
     
@@ -104,8 +112,14 @@ class Game {
       this.toggleSound();
     });
     
-    // Establece el estado inicial del botón de sonido
+    // Maneja el botón de tema
+    themeBtn.addEventListener('click', () => {
+      this.toggleTheme();
+    });
+    
+    // Establece el estado inicial de los botones
     this.updateSoundButtonUI();
+    this.updateThemeButtonUI();
     
     // Atajo de teclado para pausa (Espacio o P)
     document.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -273,6 +287,37 @@ class Game {
       soundOnIcon.style.display = 'none';
       soundOffIcon.style.display = 'block';
       soundBtn.setAttribute('aria-label', 'Activar sonido');
+    }
+  }
+  
+  /**
+   * Alterna el tema entre claro y oscuro
+   */
+  private toggleTheme(): void {
+    this.themeService.toggle();
+    this.updateThemeButtonUI();
+  }
+  
+  /**
+   * Actualiza la UI del botón de tema
+   */
+  private updateThemeButtonUI(): void {
+    const themeBtn = document.getElementById('theme-btn');
+    const lightIcon = document.getElementById('light-icon');
+    const darkIcon = document.getElementById('dark-icon');
+    
+    if (!themeBtn || !lightIcon || !darkIcon) return;
+    
+    const isDark = this.themeService.isDark();
+    
+    if (isDark) {
+      lightIcon.style.display = 'block';
+      darkIcon.style.display = 'none';
+      themeBtn.setAttribute('aria-label', 'Cambiar a tema claro');
+    } else {
+      lightIcon.style.display = 'none';
+      darkIcon.style.display = 'block';
+      themeBtn.setAttribute('aria-label', 'Cambiar a tema oscuro');
     }
   }
   
