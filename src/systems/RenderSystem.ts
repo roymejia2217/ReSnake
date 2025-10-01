@@ -11,7 +11,7 @@ import type { System } from '@/core/types';
 import type { Snake } from '@/entities/Snake';
 import type { Food } from '@/entities/Food';
 import { Renderable } from '@/components/Renderable';
-import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG } from '@/config/constants';
+import { GAME_CONFIG } from '@/config/constants';
 import { lerp } from '@/utils/AnimationHelper';
 import type { Velocity } from '@/components/Velocity';
 import type { RomanticEasterEggService } from '@/services/RomanticEasterEggService';
