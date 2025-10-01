@@ -14,7 +14,7 @@ export interface RomanticMessage {
 
 // Nombres especiales para activar el easter egg
 const SPECIAL_NAMES = [
-  'jame', 'jey', 'jeyfack', 'jeyfack69', 'jessica', 'foyolo', 'Jey', 'Jeyfack', 'Jeyfack69', 'Jessica', 'Foyolo'
+  'jame', 'jey', 'jeyfack', 'jeyfack69', 'jessica', 'foyolo', 'Jey', 'Jeyfack', 'Jeyfack69', 'Jessica', 'Foyolo', 'jamefack', 'jamefack69', 'Jamefack69', 'Jamefack', 'Jessica Chabla'
 ];
 
 // Mensajes románticos principales (uno por partida)
