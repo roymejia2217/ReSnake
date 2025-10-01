@@ -15,7 +15,7 @@ export interface RomanticMessage {
 export type RomanticEventType = 
   | 'score'           // Cuando se consigue puntos (durante juego)
   | 'gameStart'       // Al iniciar partida (durante juego)
-  | 'special69'       // Puntaje especial 69 (durante juego)
+  | 'special69'       // Puntaje especial (durante juego)
   | 'worldRecord'     // SOLO para récord mundial verdadero (game over)
   | 'personalRecord'  // SOLO para récord personal sin ser mundial (game over)
   | 'goodScore';      // Para puntajes buenos pero sin récord (game over)
@@ -126,7 +126,7 @@ const SPECIAL_MESSAGES: SpecialMessagesMap = {
       duration: 4000
     },
     {
-      text: "¡Dale mi amor, que maravilla! (⁠≧⁠▽⁠≦⁠)",
+      text: "¡Tu si que puedes mi negra guapa! (⁠≧⁠▽⁠≦⁠)",
       emoji: "💝",
       duration: 4000
     },
@@ -409,13 +409,16 @@ export class RomanticEasterEggService {
   getGameOverMessage(
     isWorldRecord: boolean, 
     isPersonalRecord: boolean, 
-    hasGoodScore: boolean = false
+    hasGoodScore: boolean = false,
+    isSpecial69: boolean = false
   ): RomanticMessage | null {
     if (!this.isActive) return null;
     
-    // Prioridad: Récord Mundial > Récord Personal > Buen Puntaje
+    // Prioridad: Récord Mundial > Special Score > Récord Personal > Buen Puntaje
     if (isWorldRecord) {
       return this.getSpecialMessage('worldRecord');
+    } else if (isSpecial69) {
+      return this.getSpecialMessage('special69');
     } else if (isPersonalRecord) {
       return this.getSpecialMessage('personalRecord');
     } else if (hasGoodScore) {

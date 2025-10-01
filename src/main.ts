@@ -22,7 +22,7 @@ import { MenuService } from '@/services/MenuService';
 import { LeaderboardService } from '@/services/LeaderboardService';
 import { LogoService } from '@/services/LogoService';
 import { generateRandomPosition } from '@/utils/helpers';
-import { GAME_CONFIG } from '@/config/constants';
+import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG } from '@/config/constants';
 import type { GameMode, Player } from '@/core/gameTypes';
 import './styles/main.css';
 
@@ -409,17 +409,19 @@ class Game {
     this.scoreService.setOnScoreChange(score => {
       const scoreEl = document.getElementById('score');
       if (scoreEl) {
-        // Verificar si es el puntaje especial 69 y el easter egg está activo
+        // Verificar si es el puntaje especial y activar lluvia de corazones
         const romanticEasterEgg = this.userService.getRomanticEasterEgg();
-        if (score === 69 && romanticEasterEgg.isEasterEggActive() && this.currentMode === 'classic') {
-          // Mostrar corazón al lado del 69
+        if (score === ROMANTIC_EASTER_EGG_CONFIG.SPECIAL_SCORE && 
+            romanticEasterEgg.isEasterEggActive() && 
+            this.currentMode === 'classic') {
+          
+          // Mostrar corazón al lado del puntaje
           scoreEl.innerHTML = `${this.i18n.t('game.score')}: ${score} <span style="color: #ff69b4; font-size: 1.2em;">💕</span>`;
           
           // Activar lluvia de corazones
           renderSystem.startHeartRain();
           
-          // Mostrar mensaje especial
-          romanticEasterEgg.showSpecialMessage('special69');
+          console.log('Special score reached! Heart rain activated during game');
         } else {
           // Puntuación normal
           scoreEl.textContent = `${this.i18n.t('game.score')}: ${score}`;
@@ -491,6 +493,21 @@ class Game {
     let personalBestBeforeSave = 0;
     let hasGoodScore = false;
     
+    // Verificar si es puntaje especial (INDEPENDIENTE del jugador)
+    const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+    const isSpecial69 = score >= ROMANTIC_EASTER_EGG_CONFIG.SPECIAL_SCORE && 
+                       this.currentMode === 'classic' && 
+                       romanticEasterEgg.isEasterEggActive();
+    
+    // Debug: Log para verificar la lógica
+    console.log('Debug Special69:', {
+      score,
+      specialScore: ROMANTIC_EASTER_EGG_CONFIG.SPECIAL_SCORE,
+      currentMode: this.currentMode,
+      isEasterEggActive: romanticEasterEgg.isEasterEggActive(),
+      isSpecial69
+    });
+    
     if (this.currentPlayer) {
       try {
         // Obtener récord personal ANTES de guardar
@@ -530,7 +547,7 @@ class Game {
     }
     
     // ✅ PASO 3: Mostrar pantalla con los datos correctos
-    await this.showGameOver(isNewWorldRecord, isNewPersonalRecord, hasGoodScore, personalBestBeforeSave);
+    await this.showGameOver(isNewWorldRecord, isNewPersonalRecord, hasGoodScore, personalBestBeforeSave, isSpecial69);
   }
   
   /**
@@ -541,7 +558,8 @@ class Game {
     isNewWorldRecord: boolean,
     isNewPersonalRecord: boolean,
     hasGoodScore: boolean,
-    personalBestBeforeSave: number
+    personalBestBeforeSave: number,
+    isSpecial69: boolean
   ): Promise<void> {
     const finalScoreEl = document.getElementById('final-score');
     const finalModeEl = document.getElementById('final-mode');
@@ -597,7 +615,8 @@ class Game {
       romanticMessageEmoji,
       isNewWorldRecord,
       isNewPersonalRecord,
-      hasGoodScore
+      hasGoodScore,
+      isSpecial69
     );
     
     this.menuService.navigateTo('game-over', false);
@@ -615,7 +634,8 @@ class Game {
     emojiElement: HTMLElement | null,
     isWorldRecord: boolean,
     isPersonalRecord: boolean,
-    hasGoodScore: boolean
+    hasGoodScore: boolean,
+    isSpecial69: boolean
   ): void {
     // Validación temprana (fail-fast)
     if (!container || !textElement || !emojiElement) {
@@ -628,11 +648,25 @@ class Game {
     const romanticMessage = romanticEasterEgg.getGameOverMessage(
       isWorldRecord,
       isPersonalRecord,
-      hasGoodScore
+      hasGoodScore,
+      isSpecial69
     );
+    
+    // Debug: Log para verificar el mensaje
+    console.log('Debug Romantic Message:', {
+      isWorldRecord,
+      isPersonalRecord,
+      hasGoodScore,
+      isSpecial69,
+      romanticMessage,
+      container: container ? 'found' : 'not found',
+      textElement: textElement ? 'found' : 'not found',
+      emojiElement: emojiElement ? 'found' : 'not found'
+    });
     
     // Si no hay mensaje (easter egg inactivo o sin logro), ocultar
     if (!romanticMessage) {
+      console.log('No romantic message found, hiding container');
       container.style.display = 'none';
       return;
     }
@@ -641,6 +675,15 @@ class Game {
     textElement.textContent = romanticMessage.text;
     emojiElement.textContent = romanticMessage.emoji;
     container.style.display = 'flex';
+    
+    // Aplicar clase CSS específica para special69
+    if (isSpecial69) {
+      container.classList.add('special69');
+    } else {
+      container.classList.remove('special69');
+    }
+    
+    // Nota: La lluvia de corazones se activa durante el juego, no en game over
     
     // Mensaje romántico mostrado
   }

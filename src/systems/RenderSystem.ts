@@ -11,7 +11,7 @@ import type { System } from '@/core/types';
 import type { Snake } from '@/entities/Snake';
 import type { Food } from '@/entities/Food';
 import { Renderable } from '@/components/Renderable';
-import { GAME_CONFIG } from '@/config/constants';
+import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG } from '@/config/constants';
 import { lerp } from '@/utils/AnimationHelper';
 import type { Velocity } from '@/components/Velocity';
 import type { RomanticEasterEggService } from '@/services/RomanticEasterEggService';
@@ -42,7 +42,7 @@ export class RenderSystem implements System {
   // Servicio de easter egg romántico
   private romanticEasterEgg?: RomanticEasterEggService;
   
-  // Sistema de lluvia de corazones para puntaje especial 69
+  // Sistema de lluvia de corazones para puntaje especial
   private heartRain: HeartParticle[] = [];
   private heartRainActive = false;
   private heartRainStartTime = 0;
@@ -587,6 +587,8 @@ export class RenderSystem implements System {
       container.style.opacity = '0';
       return;
     }
+    
+    // Nota: La lluvia de corazones se activa desde el callback de puntuación, no desde aquí
 
     // Mostrar el contenedor
     container.style.visibility = 'visible';
@@ -598,7 +600,7 @@ export class RenderSystem implements System {
   }
 
   /**
-   * Activa la lluvia de corazones para el puntaje especial 69
+   * Activa la lluvia de corazones para el puntaje especial
    */
   startHeartRain(): void {
     this.heartRainActive = true;

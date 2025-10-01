@@ -35,3 +35,9 @@ export const KEY_MAPPINGS = {
   ArrowLeft: 'LEFT',
   ArrowRight: 'RIGHT'
 } as const;
+
+// Configuración del Easter Egg Romántico
+export const ROMANTIC_EASTER_EGG_CONFIG = {
+  SPECIAL_SCORE: 69, // Puntaje especial que activa el mensaje romántico
+  SPECIAL_SCORE_TEXT: "Se que este numero es especial para ti" // Texto identificador del mensaje especial
+} as const;
