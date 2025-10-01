@@ -409,7 +409,21 @@ class Game {
     this.scoreService.setOnScoreChange(score => {
       const scoreEl = document.getElementById('score');
       if (scoreEl) {
-        scoreEl.textContent = `${this.i18n.t('game.score')}: ${score}`;
+        // Verificar si es el puntaje especial 69 y el easter egg está activo
+        const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+        if (score === 69 && romanticEasterEgg.isEasterEggActive() && this.currentMode === 'classic') {
+          // Mostrar corazón al lado del 69
+          scoreEl.innerHTML = `${this.i18n.t('game.score')}: ${score} <span style="color: #ff69b4; font-size: 1.2em;">💕</span>`;
+          
+          // Activar lluvia de corazones
+          renderSystem.startHeartRain();
+          
+          // Mostrar mensaje especial
+          romanticEasterEgg.showSpecialMessage('special69');
+        } else {
+          // Puntuación normal
+          scoreEl.textContent = `${this.i18n.t('game.score')}: ${score}`;
+        }
       }
     });
     

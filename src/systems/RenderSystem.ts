@@ -16,6 +16,17 @@ import { lerp } from '@/utils/AnimationHelper';
 import type { Velocity } from '@/components/Velocity';
 import type { RomanticEasterEggService } from '@/services/RomanticEasterEggService';
 
+// Interfaz para partículas de corazón en la lluvia
+interface HeartParticle {
+  x: number;
+  y: number;
+  velocity: number;
+  size: number;
+  opacity: number;
+  rotation: number;
+  rotationSpeed: number;
+}
+
 export class RenderSystem implements System {
   private ctx: CanvasRenderingContext2D;
   private cellSize: number;
@@ -30,6 +41,11 @@ export class RenderSystem implements System {
   
   // Servicio de easter egg romántico
   private romanticEasterEgg?: RomanticEasterEggService;
+  
+  // Sistema de lluvia de corazones para puntaje especial 69
+  private heartRain: HeartParticle[] = [];
+  private heartRainActive = false;
+  private heartRainStartTime = 0;
   
   constructor(
     private canvas: HTMLCanvasElement,
@@ -143,6 +159,8 @@ export class RenderSystem implements System {
     this.clearCanvas();
     this.renderSnake();
     this.renderFood();
+    this.updateHeartRain();
+    this.renderHeartRain();
     this.updateRomanticMessageDOM();
   }
   
@@ -577,5 +595,146 @@ export class RenderSystem implements System {
     // Actualizar el texto y emoji
     textElement.textContent = message.text;
     emojiElement.textContent = message.emoji;
+  }
+
+  /**
+   * Activa la lluvia de corazones para el puntaje especial 69
+   */
+  startHeartRain(): void {
+    this.heartRainActive = true;
+    this.heartRainStartTime = this.currentTime;
+    this.heartRain = [];
+    
+    // Crear partículas iniciales
+    for (let i = 0; i < 20; i++) {
+      this.createHeartParticle();
+    }
+  }
+
+  /**
+   * Detiene la lluvia de corazones
+   */
+  stopHeartRain(): void {
+    this.heartRainActive = false;
+    this.heartRain = [];
+  }
+
+  /**
+   * Crea una nueva partícula de corazón
+   */
+  private createHeartParticle(): void {
+    const particle: HeartParticle = {
+      x: Math.random() * this.canvas.width,
+      y: -20,
+      velocity: 1 + Math.random() * 2,
+      size: 8 + Math.random() * 12,
+      opacity: 0.6 + Math.random() * 0.4,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.1
+    };
+    
+    this.heartRain.push(particle);
+  }
+
+  /**
+   * Actualiza las partículas de corazón
+   */
+  private updateHeartRain(): void {
+    if (!this.heartRainActive) return;
+
+    // Crear nuevas partículas ocasionalmente
+    if (Math.random() < 0.3) {
+      this.createHeartParticle();
+    }
+
+    // Actualizar partículas existentes
+    for (let i = this.heartRain.length - 1; i >= 0; i--) {
+      const particle = this.heartRain[i];
+      
+      // Mover hacia abajo
+      particle.y += particle.velocity;
+      particle.rotation += particle.rotationSpeed;
+      
+      // Reducir opacidad gradualmente
+      particle.opacity -= 0.005;
+      
+      // Remover partículas que salieron de la pantalla o perdieron opacidad
+      if (particle.y > this.canvas.height + 20 || particle.opacity <= 0) {
+        this.heartRain.splice(i, 1);
+      }
+    }
+
+    // Detener la lluvia después de 8 segundos
+    if (this.currentTime - this.heartRainStartTime > 8000) {
+      this.stopHeartRain();
+    }
+  }
+
+  /**
+   * Renderiza las partículas de corazón
+   */
+  private renderHeartRain(): void {
+    if (!this.heartRainActive || this.heartRain.length === 0) return;
+
+    this.ctx.save();
+    
+    this.heartRain.forEach(particle => {
+      this.ctx.save();
+      this.ctx.globalAlpha = particle.opacity;
+      this.ctx.translate(particle.x, particle.y);
+      this.ctx.rotate(particle.rotation);
+      
+      // Dibujar corazón
+      this.drawHeart(0, 0, particle.size, '#ff69b4');
+      
+      this.ctx.restore();
+    });
+    
+    this.ctx.restore();
+  }
+
+  /**
+   * Dibuja un corazón en las coordenadas especificadas
+   */
+  private drawHeart(x: number, y: number, size: number, color: string): void {
+    this.ctx.fillStyle = color;
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    
+    const scale = size / 20;
+    
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y + 5 * scale);
+    
+    // Curva izquierda del corazón
+    this.ctx.bezierCurveTo(
+      x - 5 * scale, y - 5 * scale,
+      x - 10 * scale, y - 5 * scale,
+      x - 10 * scale, y + 2.5 * scale
+    );
+    
+    // Curva inferior izquierda
+    this.ctx.bezierCurveTo(
+      x - 10 * scale, y + 10 * scale,
+      x, y + 10 * scale,
+      x, y + 5 * scale
+    );
+    
+    // Curva inferior derecha
+    this.ctx.bezierCurveTo(
+      x, y + 10 * scale,
+      x + 10 * scale, y + 10 * scale,
+      x + 10 * scale, y + 2.5 * scale
+    );
+    
+    // Curva derecha del corazón
+    this.ctx.bezierCurveTo(
+      x + 10 * scale, y - 5 * scale,
+      x + 5 * scale, y - 5 * scale,
+      x, y + 5 * scale
+    );
+    
+    this.ctx.fill();
+    this.ctx.stroke();
   }
 }

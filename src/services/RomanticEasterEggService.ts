@@ -15,6 +15,7 @@ export interface RomanticMessage {
 export type RomanticEventType = 
   | 'score'           // Cuando se consigue puntos (durante juego)
   | 'gameStart'       // Al iniciar partida (durante juego)
+  | 'special69'       // Puntaje especial 69 (durante juego)
   | 'worldRecord'     // SOLO para récord mundial verdadero (game over)
   | 'personalRecord'  // SOLO para récord personal sin ser mundial (game over)
   | 'goodScore';      // Para puntajes buenos pero sin récord (game over)
@@ -138,6 +139,14 @@ const SPECIAL_MESSAGES: SpecialMessagesMap = {
       text: "¡Vamos mi lindura, vas excelente! (⁠≧⁠▽⁠≦⁠)",
       emoji: "✨💕",
       duration: 4000
+    }
+  ],
+  
+  special69: [
+    {
+      text: "Se que este numero es especial para ti, asi que tambien lo es para mi, Mi Jessica, Mi Jame, Mi Vida, Mi Todo, quedate a mi lado, que te seguiré haciendo sentir muy especial, muy importante, muy valiosa como siempre lo has sido para mi, para tu Roy, quien te felicita por tan grandioso puntaje",
+      emoji: "💕",
+      duration: 8000
     }
   ],
   
