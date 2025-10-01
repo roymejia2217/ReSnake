@@ -13,13 +13,13 @@ export class LogoService {
   private readonly LOGO_MAP = {
     // Logos de alta calidad
     're-snake': {
-      light: '/res/re-snake.png',
-      dark: '/res/re-snakew.png'
+      light: './res/re-snake.png',
+      dark: './res/re-snakew.png'
     },
     // Logos de baja calidad
     're-snake2': {
-      light: '/res/re-snake2.png', 
-      dark: '/res/re-snake2w.png'
+      light: './res/re-snake2.png', 
+      dark: './res/re-snake2w.png'
     }
   };
 
