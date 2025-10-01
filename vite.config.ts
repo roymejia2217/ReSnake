@@ -2,8 +2,8 @@ import { defineConfig } from 'vite';
 import path from 'path';
 import { fileURLToPath, URL } from 'node:url';
 
-export default defineConfig({
-  base: '/ReSnake/',
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/ReSnake/' : '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
@@ -24,4 +24,4 @@ export default defineConfig({
     port: 3000,
     open: true
   }
-});
+}));

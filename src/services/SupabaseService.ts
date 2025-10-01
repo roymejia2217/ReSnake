@@ -106,7 +106,7 @@ export class SupabaseService {
         console.warn('Supabase connection test failed:', error.message);
       } else {
         this.connectionStatus = 'connected';
-        console.log('Supabase connection established');
+        // Supabase connection established
       }
     } catch (error) {
       this.connectionStatus = 'disconnected';

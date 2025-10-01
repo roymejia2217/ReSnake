@@ -57,8 +57,6 @@ const translations: LanguagePack = {
     },
     leaderboard: {
       title: 'Mejores Puntuaciones',
-      local: 'Locales',
-      online: 'En línea',
       allModes: 'Todos',
       position: 'Pos',
       player: 'Jugador',
@@ -135,8 +133,6 @@ const translations: LanguagePack = {
     },
     leaderboard: {
       title: 'Leaderboard',
-      local: 'Local',
-      online: 'Online',
       allModes: 'All',
       position: 'Pos',
       player: 'Player',
@@ -213,8 +209,6 @@ const translations: LanguagePack = {
     },
     leaderboard: {
       title: 'Classifica',
-      local: 'Locale',
-      online: 'Online',
       allModes: 'Tutti',
       position: 'Pos',
       player: 'Giocatore',

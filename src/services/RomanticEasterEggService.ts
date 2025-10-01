@@ -1,6 +1,7 @@
 /**
  * Servicio de Easter Egg Romántico
  * Detecta nombres especiales y muestra mensajes motivacionales animados
+ * REFACTORIZADO: Sistema de eventos semánticamente correcto
  * Principio: Single Responsibility (SOLID)
  */
 
@@ -9,6 +10,17 @@ export interface RomanticMessage {
   emoji: string;
   duration: number; // Duración en ms
 }
+
+// Tipos de eventos semánticamente correctos
+export type RomanticEventType = 
+  | 'score'           // Cuando se consigue puntos (durante juego)
+  | 'gameStart'       // Al iniciar partida (durante juego)
+  | 'worldRecord'     // SOLO para récord mundial verdadero (game over)
+  | 'personalRecord'  // SOLO para récord personal sin ser mundial (game over)
+  | 'goodScore';      // Para puntajes buenos pero sin récord (game over)
+
+// Tipo para el objeto de mensajes especiales
+type SpecialMessagesMap = Record<RomanticEventType, RomanticMessage[]>;
 
 // ===== CONFIGURACIÓN GLOBAL DE MENSAJES =====
 
@@ -20,138 +32,196 @@ const SPECIAL_NAMES = [
 // Mensajes románticos principales (uno por partida)
 const ROMANTIC_MESSAGES: RomanticMessage[] = [
   {
-    text: "Vamos mi negrita hermosa, tu puedes",
+    text: "Vamos mi negrita hermosa, tú puedes (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
     emoji: "💕",
     duration: 4000
   },
   {
-    text: "Mi corazón, claro que habría una función en tu honor",
+    text: "Mi corazón, claro que habría una función en tu honor (⁠≧⁠▽⁠≦⁠)",
     emoji: "❤️",
     duration: 4500
   },
   {
-    text: "Eres increíble en todo, sé que para este juego también lo serás",
+    text: "Eres increíble en todo, sé que para este juego también lo serás (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
     emoji: "💖",
     duration: 5000
   },
   {
-    text: "Estás haciendo un trabajo increíble mi amada Jessica",
+    text: "Estás haciendo un trabajo increíble mi amada Jessica (⁠≧⁠▽⁠≦⁠)",
     emoji: "💕",
     duration: 4500
   },
   {
-    text: "Tu constancia me inspira diariamente",
+    text: "Tu constancia me inspira diariamente (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
     emoji: "💝",
     duration: 4000
   },
   {
-    text: "Nada es imposible para ti mi cielo",
+    text: "Nada es imposible para ti mi cielo (⁠≧⁠▽⁠≦⁠)",
     emoji: "💗",
     duration: 4000
   },
   {
-    text: "Eres mi solecito calido y encantador",
+    text: "Eres mi solecito cálido y encantador (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
     emoji: "✨💕",
     duration: 4000
   },
   {
-    text: "Tu pasión por superarte es admirable",
+    text: "Tu pasión por superarte es admirable (⁠≧⁠▽⁠≦⁠)",
     emoji: "💖",
     duration: 4500
   },
   {
-    text: "Cada uno de tus logros me llena de orgullo",
+    text: "Cada uno de tus logros me llena de orgullo (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
     emoji: "💝",
     duration: 4000
   },
   {
-    text: "Sigue así mi tesoro",
+    text: "Sigue así mi tesoro (⁠≧⁠▽⁠≦⁠)",
     emoji: "💕",
     duration: 4000
   }
 ];
 
-// Mensajes especiales para eventos (con múltiples variaciones)
-const SPECIAL_MESSAGES = {
+// Mensajes especiales para eventos (semánticamente correctos)
+const SPECIAL_MESSAGES: SpecialMessagesMap = {
   score: [
     {
-      text: "¡Tu esfuerzo tiene su recompensa!",
+      text: "¡Cada punto que obtienes significa que te amo mucho más! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
       emoji: "💖",
       duration: 3000
     },
     {
-      text: "¡Eso es! ¡Sigue así mi amor!",
+      text: "¡Eso es, sigue así mi lindura! (⁠≧⁠▽⁠≦⁠)",
       emoji: "💕",
       duration: 3000
     },
     {
-      text: "¡Vas muy bien mi cielo!",
+      text: "¡Vas muy bien mi cielo! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
       emoji: "💝",
       duration: 3000
     },
     {
-      text: "¡Excelente mi bombón!",
+      text: "¡Excelente mi bombón! (⁠≧⁠▽⁠≦⁠)",
       emoji: "💗",
       duration: 3000
     },
     {
-      text: "¡Lo estas haciendo increible mi bebé!",
+      text: "¡Lo estás haciendo increíble mi bebé! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
       emoji: "✨💕",
       duration: 3000
     }
   ],
-  record: [
-    {
-      text: "¡Es un buen puntaje, sigue así!",
-      emoji: "💝",
-      duration: 4000
-    },
-    {
-      text: "¡Estoy tan orgulloso de ti!",
-      emoji: "💖",
-      duration: 4000
-    },
-    {
-      text: "¡Un increible nuevo récord!",
-      emoji: "💕",
-      duration: 4000
-    },
-    {
-      text: "¡Superaste tu marca mi tesoro!",
-      emoji: "💗",
-      duration: 4000
-    },
-    {
-      text: "¡Que buen puntaje!",
-      emoji: "✨💕",
-      duration: 4000
-    }
-  ],
+  
   gameStart: [
     {
-      text: "¡Tú puedes con todo mi tesoro!",
+      text: "¡Tú puedes con todo mi tesoro! (⁠≧⁠▽⁠≦⁠)",
       emoji: "💕",
       duration: 4000
     },
     {
-      text: "¡Vamos mi negrita linda, tú puedes!",
+      text: "¡Vamos mi negrita linda, tú puedes! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
       emoji: "💖",
       duration: 4000
     },
     {
-      text: "¡Dale mi amor, que maravilla!",
+      text: "¡Dale mi amor, que maravilla! (⁠≧⁠▽⁠≦⁠)",
       emoji: "💝",
       duration: 4000
     },
     {
-      text: "¡Suerte mi cielo, tú puedes!",
+      text: "¡Suerte mi cielo, tú puedes! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
       emoji: "💗",
       duration: 4000
     },
     {
-      text: "¡Vamos mi lindura, vas excelente!",
+      text: "¡Vamos mi lindura, vas excelente! (⁠≧⁠▽⁠≦⁠)",
       emoji: "✨💕",
       duration: 4000
+    }
+  ],
+  
+  worldRecord: [
+    {
+      text: "¡UN RÉCORD MUNDIAL! ¡Eres increíble mi amor! (⁠≧⁠▽⁠≦⁠)",
+      emoji: "🏆💕",
+      duration: 5000
+    },
+    {
+      text: "¡La mejor del mundo! ¡Estoy tan orgulloso de ti! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "👑💖",
+      duration: 5000
+    },
+    {
+      text: "¡RÉCORD MUNDIAL! ¡Sabía que lo lograrías mi cielo! (⁠≧⁠▽⁠≦⁠)",
+      emoji: "🌟💝",
+      duration: 5000
+    },
+    {
+      text: "¡Eres la número uno del mundo mi tesoro! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "🥇💗",
+      duration: 5000
+    },
+    {
+      text: "¡Wow mi negrita hermosa, récord mundial! (⁠≧⁠▽⁠≦⁠)",
+      emoji: "✨👑",
+      duration: 5000
+    }
+  ],
+  
+  personalRecord: [
+    {
+      text: "¡Superaste tu marca mi tesoro! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "💗",
+      duration: 4000
+    },
+    {
+      text: "¡Un nuevo récord personal mi amor! (⁠≧⁠▽⁠≦⁠)",
+      emoji: "⭐💕",
+      duration: 4000
+    },
+    {
+      text: "¡Cada vez mejor mi cielo! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "💖",
+      duration: 4000
+    },
+    {
+      text: "¡Sigue mejorando así mi lindura! (⁠≧⁠▽⁠≦⁠)",
+      emoji: "💝",
+      duration: 4000
+    },
+    {
+      text: "¡Estoy orgulloso de tu progreso mi bebé! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "✨💕",
+      duration: 4000
+    }
+  ],
+  
+  goodScore: [
+    {
+      text: "¡Buen intento mi amor! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "💕",
+      duration: 3500
+    },
+    {
+      text: "¡Estuviste muy cerca mi cielo! (⁠≧⁠▽⁠≦⁠)",
+      emoji: "💖",
+      duration: 3500
+    },
+    {
+      text: "¡Sigue así, vas mejorando mi tesoro! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "💝",
+      duration: 3500
+    },
+    {
+      text: "¡La próxima será el récord mi lindura! (⁠≧⁠▽⁠≦⁠)",
+      emoji: "✨💕",
+      duration: 3500
+    },
+    {
+      text: "¡Buen puntaje mi negrita hermosa! (⁠ ⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+      emoji: "💗",
+      duration: 3500
     }
   ]
 };
@@ -189,7 +259,7 @@ export class RomanticEasterEggService {
     this.hasShownRomanticMessage = false; // Reset para nueva partida
     this.startMessageRotation();
     
-    console.log('💕 Easter Egg Romántico Activado 💕');
+    // Easter Egg Romántico Activado
   }
   
   /**
@@ -207,7 +277,7 @@ export class RomanticEasterEggService {
       this.messageTimeout = undefined;
     }
     
-    console.log('💕 Easter Egg Romántico Desactivado 💕');
+    // Easter Egg Romántico Desactivado
   }
   
   /**
@@ -273,13 +343,14 @@ export class RomanticEasterEggService {
     this.messageStartTime = performance.now();
     this.hasShownRomanticMessage = true;
     
-    console.log(`💕 Mensaje romántico mostrado: "${this.currentMessage.text}" 💕`);
+    // Mensaje romántico mostrado
   }
   
   /**
-   * Obtiene un mensaje especial para eventos específicos (con variaciones)
+   * Obtiene un mensaje especial para eventos específicos
+   * REFACTORIZADO: Ahora acepta los nuevos tipos de eventos semánticamente correctos
    */
-  getSpecialMessage(event: 'score' | 'record' | 'gameStart'): RomanticMessage | null {
+  getSpecialMessage(event: RomanticEventType): RomanticMessage | null {
     if (!this.isActive) return null;
     
     const messages = SPECIAL_MESSAGES[event];
@@ -292,21 +363,21 @@ export class RomanticEasterEggService {
   
   /**
    * Muestra un mensaje especial temporalmente
-   * Si ya hay un mensaje activo, lo reemplaza inmediatamente (KISS)
+   * REFACTORIZADO: Ahora acepta los nuevos tipos de eventos
    */
-  showSpecialMessage(event: 'score' | 'record' | 'gameStart'): void {
+  showSpecialMessage(event: RomanticEventType): void {
     if (!this.isActive) return;
     
     const specialMessage = this.getSpecialMessage(event);
     if (!specialMessage) return;
     
-    // SOLUCIÓN: Cancela el timeout del mensaje anterior si existe
+    // Cancela el timeout del mensaje anterior si existe
     if (this.messageTimeout) {
       clearTimeout(this.messageTimeout);
       this.messageTimeout = undefined;
     }
     
-    // Reemplaza el mensaje actual y resetea el temporizador (evita solapamiento)
+    // Reemplaza el mensaje actual y resetea el temporizador
     this.currentMessage = specialMessage;
     this.messageStartTime = performance.now();
     
@@ -317,5 +388,31 @@ export class RomanticEasterEggService {
         this.messageTimeout = undefined;
       }
     }, specialMessage.duration);
+    
+    // Mensaje especial mostrado
+  }
+  
+  /**
+   * NUEVO: Método unificado para obtener mensaje según tipo de logro en game over
+   * Encapsula la lógica de decisión y elimina código duplicado (DRY)
+   * Principio: Single Responsibility - determina qué mensaje mostrar según el contexto
+   */
+  getGameOverMessage(
+    isWorldRecord: boolean, 
+    isPersonalRecord: boolean, 
+    hasGoodScore: boolean = false
+  ): RomanticMessage | null {
+    if (!this.isActive) return null;
+    
+    // Prioridad: Récord Mundial > Récord Personal > Buen Puntaje
+    if (isWorldRecord) {
+      return this.getSpecialMessage('worldRecord');
+    } else if (isPersonalRecord) {
+      return this.getSpecialMessage('personalRecord');
+    } else if (hasGoodScore) {
+      return this.getSpecialMessage('goodScore');
+    }
+    
+    return null;
   }
 }

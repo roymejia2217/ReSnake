@@ -18,7 +18,7 @@
     <div id="screen-main-menu" class="screen menu-screen">
       <div class="menu-container">
         <div class="game-logo-container">
-          <img src="/res/re-snake.png" alt="Snake Game" class="game-logo" />
+          <img src="/res/re-snakew.png" alt="Snake Game" class="game-logo" />
         </div>
         <div class="menu-buttons">
           <button id="btn-play" class="menu-btn menu-btn-primary" data-i18n="menu.play">
@@ -47,7 +47,7 @@
     <div id="screen-game-mode-select" class="screen menu-screen" style="display: none;">
       <div class="menu-container">
         <div class="options-logo-container">
-          <img src="/res/re-snake2.png" alt="Snake Game" class="options-logo" />
+          <img src="/res/re-snake2w.png" alt="Snake Game" class="options-logo" />
         </div>
         <h2 class="screen-title" data-i18n="gameMode.title">Seleccionar Modo de Juego</h2>
         <div class="mode-cards">
@@ -101,7 +101,7 @@
     <div id="screen-options" class="screen menu-screen" style="display: none;">
       <div class="menu-container">
         <div class="options-logo-container">
-          <img src="/res/re-snake2.png" alt="Snake Game" class="options-logo" />
+          <img src="/res/re-snake2w.png" alt="Snake Game" class="options-logo" />
         </div>
         <h2 class="screen-title" data-i18n="options.title">Opciones</h2>
         <div class="options-container">
@@ -156,13 +156,11 @@
     <!-- ===== PANTALLA: LEADERBOARD ===== -->
     <div id="screen-leaderboard" class="screen menu-screen" style="display: none;">
       <div class="menu-container">
+        <div class="options-logo-container">
+          <img src="/res/re-snake2w.png" alt="Snake Game" class="options-logo" />
+        </div>
         <h2 class="screen-title" data-i18n="leaderboard.title">Mejores Puntuaciones</h2>
         
-        <div class="leaderboard-tabs">
-          <button class="tab-btn active" data-tab="local" data-i18n="leaderboard.local">Locales</button>
-          <button class="tab-btn" data-tab="online" data-i18n="leaderboard.online" disabled>En línea</button>
-        </div>
-
         <!-- Filtros por modo de juego -->
         <div class="mode-filters">
           <button class="filter-btn active" data-mode="all" data-i18n="leaderboard.allModes">Todos</button>
@@ -199,7 +197,7 @@
       <div id="score-panel">
         <div class="score-left-section">
           <div class="score-logo-container">
-            <img src="/res/re-snake2.png" alt="Snake Game" class="score-logo" />
+            <img src="/res/re-snake2w.png" alt="Snake Game" class="score-logo" />
           </div>
           <div class="score-info">
             <div id="player-name" class="player-name"></div>
@@ -227,17 +225,17 @@
       <div id="game-container">
         <canvas id="game-canvas"></canvas>
         
+        <!-- Contenedor de mensajes románticos - DENTRO del canvas para posicionamiento relativo -->
+        <div id="romantic-message-container" class="romantic-message-container">
+          <div class="romantic-message-content">
+            <span id="romantic-message-text" class="romantic-message-text"></span>
+            <span id="romantic-message-emoji" class="romantic-message-emoji"></span>
+          </div>
+        </div>
+        
         <div id="pause-overlay" style="display: none;">
           <h2 data-i18n="game.paused">Pausado</h2>
           <p data-i18n="game.pauseMessage">Presiona el botón de pausa para continuar</p>
-        </div>
-      </div>
-
-      <!-- Contenedor de mensajes románticos -->
-      <div id="romantic-message-container" class="romantic-message-container">
-        <div class="romantic-message-content">
-          <span id="romantic-message-text" class="romantic-message-text"></span>
-          <span id="romantic-message-emoji" class="romantic-message-emoji"></span>
         </div>
       </div>
 

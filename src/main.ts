@@ -20,6 +20,7 @@ import { UserService } from '@/services/UserService';
 import { GameModeService } from '@/services/GameModeService';
 import { MenuService } from '@/services/MenuService';
 import { LeaderboardService } from '@/services/LeaderboardService';
+import { LogoService } from '@/services/LogoService';
 import { generateRandomPosition } from '@/utils/helpers';
 import { GAME_CONFIG } from '@/config/constants';
 import type { GameMode, Player } from '@/core/gameTypes';
@@ -42,6 +43,7 @@ class Game {
   private menuService: MenuService;
   private leaderboardService: LeaderboardService;
   private scoreService: ScoreService;
+  private logoService: LogoService;
   
   // Motor y entidades
   private engine?: GameEngine;
@@ -65,12 +67,13 @@ class Game {
     this.menuService = new MenuService();
     this.leaderboardService = new LeaderboardService();
     this.scoreService = new ScoreService();
+    this.logoService = new LogoService(this.themeService);
     
     this.setupMenus();
     this.setupOptionsHandlers();
     this.setupLanguageSync();
     this.updateAllTranslations();
-    this.setupSupabaseAvailability();
+    this.logoService.initialize();
   }
   
   /**
@@ -91,7 +94,7 @@ class Game {
     });
     
     btnLeaderboard?.addEventListener('click', async () => {
-      await this.updateLeaderboard('all');
+      await this.updateGlobalLeaderboard('all');
       this.menuService.navigateTo('leaderboard');
     });
     
@@ -133,22 +136,7 @@ class Game {
       this.menuService.navigateBack();
     });
     
-    // Tabs del leaderboard (Local/Online)
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const tab = btn.getAttribute('data-tab');
-        
-        // Actualiza estado activo visualmente
-        tabButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        // Actualiza el leaderboard según el tab seleccionado
-        await this.updateLeaderboardTab(tab as 'local' | 'online');
-      });
-    });
-    
-    // Filtros del leaderboard
+    // Filtros del leaderboard (solo filtros de modo, sin tabs)
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -158,8 +146,8 @@ class Game {
         filterButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         
-        // Actualiza el leaderboard con el filtro seleccionado
-        await this.updateLeaderboard(mode);
+        // Actualiza el leaderboard global con el filtro seleccionado
+        await this.updateGlobalLeaderboard(mode);
       });
     });
     
@@ -316,26 +304,6 @@ class Game {
     });
   }
 
-  /**
-   * Configura la disponibilidad del botón "En línea" basado en Supabase
-   */
-  private setupSupabaseAvailability(): void {
-    // Verificar disponibilidad de Supabase después de un breve delay
-    setTimeout(() => {
-      const onlineTab = document.querySelector('[data-tab="online"]') as HTMLButtonElement;
-      if (onlineTab) {
-        // Verificar si Supabase está disponible
-        const isAvailable = this.leaderboardService.getSupabaseService().isAvailable();
-        onlineTab.disabled = !isAvailable;
-        
-        if (isAvailable) {
-          console.log('Supabase disponible - Botón "En línea" habilitado');
-        } else {
-          console.log('Supabase no disponible - Botón "En línea" deshabilitado');
-        }
-      }
-    }, 3000); // 3 segundos de delay para permitir la inicialización
-  }
   
   /**
    * Actualiza todas las traducciones en la página
@@ -495,28 +463,72 @@ class Game {
   
   /**
    * Maneja el game over
+   * REFACTORIZADO: Obtiene récords ANTES de guardar el score para evitar comparaciones incorrectas
    */
-  private handleGameOver(): void {
+  private async handleGameOver(): Promise<void> {
     this.engine?.stop();
     this.soundService.play('gameover');
     
-    // Guarda la puntuación en el leaderboard
+    const score = this.scoreService.getScore();
+    
+    // ✅ PASO 1: Obtener récords ANTES de guardar el score (CRÍTICO para lógica correcta)
+    let isNewWorldRecord = false;
+    let isNewPersonalRecord = false;
+    let personalBestBeforeSave = 0;
+    let hasGoodScore = false;
+    
     if (this.currentPlayer) {
+      try {
+        // Obtener récord personal ANTES de guardar
+        personalBestBeforeSave = this.leaderboardService.getPlayerBestScore(
+          this.currentPlayer.id,
+          this.currentMode
+        );
+        
+        // Verificar si es récord mundial (prioriza datos globales)
+        isNewWorldRecord = await this.leaderboardService.isWorldRecord(score, this.currentMode);
+        
+        // Verificar si es récord personal (comparar con el ANTERIOR récord)
+        isNewPersonalRecord = score > personalBestBeforeSave;
+        
+        // Determinar si es buen puntaje (>= 50% del récord personal anterior)
+        hasGoodScore = personalBestBeforeSave > 0 && score >= personalBestBeforeSave * 0.5;
+        
+        // Análisis de récords completado
+        
+      } catch (error) {
+        console.warn('Error verificando récords:', error);
+        // En caso de error, usar verificación local
+        personalBestBeforeSave = this.leaderboardService.getPlayerBestScore(
+          this.currentPlayer.id,
+          this.currentMode
+        );
+        isNewPersonalRecord = score > personalBestBeforeSave;
+        hasGoodScore = personalBestBeforeSave > 0 && score >= personalBestBeforeSave * 0.5;
+      }
+      
+      // ✅ PASO 2: AHORA SÍ guardar el score en el leaderboard
       this.leaderboardService.addScore(
         this.currentPlayer,
-        this.scoreService.getScore(),
+        score,
         this.currentMode
       );
     }
     
-    // Muestra pantalla de game over
-    this.showGameOver();
+    // ✅ PASO 3: Mostrar pantalla con los datos correctos
+    await this.showGameOver(isNewWorldRecord, isNewPersonalRecord, hasGoodScore, personalBestBeforeSave);
   }
   
   /**
    * Muestra la pantalla de game over con estadísticas inteligentes
+   * REFACTORIZADO: Recibe los datos de récords ya calculados para evitar re-cálculos incorrectos
    */
-  private async showGameOver(): Promise<void> {
+  private async showGameOver(
+    isNewWorldRecord: boolean,
+    isNewPersonalRecord: boolean,
+    hasGoodScore: boolean,
+    personalBestBeforeSave: number
+  ): Promise<void> {
     const finalScoreEl = document.getElementById('final-score');
     const finalModeEl = document.getElementById('final-mode');
     const recordInfoEl = document.getElementById('record-info');
@@ -540,97 +552,74 @@ class Game {
       romanticMessageContainer.style.display = 'none';
     }
     
-    // Sistema inteligente de detección de récords (prioriza datos globales)
-    if (recordInfoEl && this.currentPlayer) {
-      try {
-        // Verificar récord mundial usando datos globales
-        const isNewWorldRecord = await this.leaderboardService.isWorldRecord(score, this.currentMode);
-        const isNewPersonalRecord = this.leaderboardService.isNewPersonalRecord(
-          score, 
-          this.currentPlayer.id, 
-          this.currentMode
-        );
-        
-        if (isNewWorldRecord) {
-          // ¡NUEVO RÉCORD MUNDIAL!
-          recordInfoEl.textContent = `🏆 ${this.i18n.t('game.newWorldRecord')}!`;
-          recordInfoEl.style.color = 'var(--color-snake)';
-          recordInfoEl.style.fontWeight = 'bold';
-          recordInfoEl.style.animation = 'pulse 1s infinite';
-          
-          // SOLUCIÓN: Mostrar mensaje romántico en game over
-          this.showRomanticRecordMessage(romanticMessageContainer, romanticMessageText, romanticMessageEmoji);
-        } else if (isNewPersonalRecord) {
-          // Nuevo récord personal
-          const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
-          recordInfoEl.textContent = `⭐ ${this.i18n.t('game.newPersonalRecord')}! (${this.i18n.t('game.worldRecord')}: ${currentRecord})`;
-          recordInfoEl.style.color = '#ffd700';
-          recordInfoEl.style.fontWeight = 'bold';
-          
-          // SOLUCIÓN: Mostrar mensaje romántico en game over
-          this.showRomanticRecordMessage(romanticMessageContainer, romanticMessageText, romanticMessageEmoji);
-        } else {
-          // No es récord, muestra información del récord actual
-          const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
-          const personalBest = this.leaderboardService.getPlayerBestScore(
-            this.currentPlayer.id, 
-            this.currentMode
-          );
-          
-          recordInfoEl.textContent = `${this.i18n.t('game.worldRecord')}: ${currentRecord} | ${this.i18n.t('game.personalBest')}: ${personalBest}`;
-          recordInfoEl.style.color = 'var(--panel-text-secondary)';
-          recordInfoEl.style.fontWeight = 'normal';
-          recordInfoEl.style.animation = 'none';
-        }
-      } catch (error) {
-        console.warn('Error verificando récords, usando datos locales:', error);
-        // Fallback a verificación local
-        const isNewLocalRecord = this.leaderboardService.isNewRecord(score, this.currentMode);
-        
-        if (isNewLocalRecord) {
-          recordInfoEl.textContent = `⭐ ${this.i18n.t('game.newPersonalRecord')}!`;
-          recordInfoEl.style.color = '#ffd700';
-          recordInfoEl.style.fontWeight = 'bold';
-          
-          // SOLUCIÓN: Mostrar mensaje romántico en game over
-          this.showRomanticRecordMessage(romanticMessageContainer, romanticMessageText, romanticMessageEmoji);
-        } else {
-          const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
-          const personalBest = this.leaderboardService.getPlayerBestScore(
-            this.currentPlayer.id, 
-            this.currentMode
-          );
-          
-          recordInfoEl.textContent = `${this.i18n.t('game.worldRecord')}: ${currentRecord} | ${this.i18n.t('game.personalBest')}: ${personalBest}`;
-          recordInfoEl.style.color = 'var(--panel-text-secondary)';
-          recordInfoEl.style.fontWeight = 'normal';
-        }
+    // Mostrar información de récords usando los datos ya calculados
+    if (recordInfoEl) {
+      const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
+      
+      if (isNewWorldRecord) {
+        // ¡NUEVO RÉCORD MUNDIAL!
+        recordInfoEl.textContent = `🏆 ${this.i18n.t('game.newWorldRecord')}!`;
+        recordInfoEl.style.color = 'var(--color-snake)';
+        recordInfoEl.style.fontWeight = 'bold';
+        recordInfoEl.style.animation = 'pulse 1s infinite';
+      } else if (isNewPersonalRecord) {
+        // Nuevo récord personal
+        recordInfoEl.textContent = `⭐ ${this.i18n.t('game.newPersonalRecord')}! (${this.i18n.t('game.worldRecord')}: ${currentRecord})`;
+        recordInfoEl.style.color = '#ffd700';
+        recordInfoEl.style.fontWeight = 'bold';
+      } else {
+        // No es récord, muestra información del récord actual
+        recordInfoEl.textContent = `${this.i18n.t('game.worldRecord')}: ${currentRecord} | ${this.i18n.t('game.personalBest')}: ${personalBestBeforeSave}`;
+        recordInfoEl.style.color = 'var(--panel-text-secondary)';
+        recordInfoEl.style.fontWeight = 'normal';
+        recordInfoEl.style.animation = 'none';
       }
     }
+    
+    // ✅ Mostrar mensaje romántico con los datos correctos
+    this.showRomanticGameOverMessage(
+      romanticMessageContainer, 
+      romanticMessageText, 
+      romanticMessageEmoji,
+      isNewWorldRecord,
+      isNewPersonalRecord,
+      hasGoodScore
+    );
     
     this.menuService.navigateTo('game-over', false);
   }
   
   /**
-   * Muestra el mensaje romántico de récord en la pantalla de game over
-   * Método auxiliar para DRY (Don't Repeat Yourself)
+   * NUEVO: Método unificado para mostrar mensaje romántico en game over
+   * Reemplaza las 3 llamadas duplicadas anteriores
+   * Principio DRY: Don't Repeat Yourself
+   * Principio KISS: Keep It Simple, Stupid
    */
-  private showRomanticRecordMessage(
+  private showRomanticGameOverMessage(
     container: HTMLElement | null,
     textElement: HTMLElement | null, 
-    emojiElement: HTMLElement | null
+    emojiElement: HTMLElement | null,
+    isWorldRecord: boolean,
+    isPersonalRecord: boolean,
+    hasGoodScore: boolean
   ): void {
-    const romanticEasterEgg = this.userService.getRomanticEasterEgg();
-    
-    // Verifica que el easter egg esté activo y los elementos existan
-    if (!romanticEasterEgg.isEasterEggActive() || !container || !textElement || !emojiElement) {
+    // Validación temprana (fail-fast)
+    if (!container || !textElement || !emojiElement) {
       return;
     }
     
-    // Obtiene el mensaje romántico de récord
-    const romanticMessage = romanticEasterEgg.getSpecialMessage('record');
+    const romanticEasterEgg = this.userService.getRomanticEasterEgg();
     
+    // Obtiene el mensaje apropiado según el tipo de logro
+    const romanticMessage = romanticEasterEgg.getGameOverMessage(
+      isWorldRecord,
+      isPersonalRecord,
+      hasGoodScore
+    );
+    
+    // Si no hay mensaje (easter egg inactivo o sin logro), ocultar
     if (!romanticMessage) {
+      container.style.display = 'none';
       return;
     }
     
@@ -639,7 +628,7 @@ class Game {
     emojiElement.textContent = romanticMessage.emoji;
     container.style.display = 'flex';
     
-    console.log(`💕 Mensaje romántico de récord mostrado: "${romanticMessage.text}" 💕`);
+    // Mensaje romántico mostrado
   }
   
   /**
@@ -686,56 +675,6 @@ class Game {
     }
   }
   
-  /**
-   * Actualiza el tab del leaderboard (Local/Online)
-   */
-  private async updateLeaderboardTab(tab: 'local' | 'online'): Promise<void> {
-    if (tab === 'online') {
-      // Verificar si Supabase está disponible
-      if (this.leaderboardService && this.leaderboardService.getSupabaseService().isAvailable()) {
-        await this.updateGlobalLeaderboard('all');
-      } else {
-        // Si no está disponible, volver al tab local
-        const localTab = document.querySelector('[data-tab="local"]') as HTMLButtonElement;
-        localTab?.click();
-        return;
-      }
-    } else {
-      // Tab local
-      await this.updateLeaderboard('all');
-    }
-  }
-
-  /**
-   * Actualiza el leaderboard con sistema inteligente (prioriza datos globales)
-   */
-  private async updateLeaderboard(filterMode: GameMode | 'all' = 'all'): Promise<void> {
-    const tbody = document.getElementById('leaderboard-body');
-    const noScores = document.getElementById('no-scores');
-    const container = document.querySelector('.leaderboard-container');
-    
-    if (!tbody || !noScores || !container) return;
-    
-    // Verificar si estamos en tab "En línea" y Supabase está disponible
-    const onlineTab = document.querySelector('[data-tab="online"]') as HTMLButtonElement;
-    const isOnlineTab = onlineTab?.classList.contains('active');
-    
-    if (isOnlineTab && this.leaderboardService.getSupabaseService().isAvailable()) {
-      // Usar datos globales
-      await this.updateGlobalLeaderboard(filterMode);
-      return;
-    }
-    
-    // Usar datos locales (tab "Local" o Supabase no disponible)
-    let topScores: any[];
-    if (filterMode === 'all') {
-      topScores = this.leaderboardService.getTopScoresAllModes(20);
-    } else {
-      topScores = this.leaderboardService.getTopScores(20, filterMode);
-    }
-    
-    this.renderLeaderboardScores(topScores, tbody, noScores, container);
-  }
 
   /**
    * Renderiza las puntuaciones en el leaderboard (método reutilizable)

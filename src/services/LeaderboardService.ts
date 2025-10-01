@@ -262,7 +262,7 @@ export class LeaderboardService {
     try {
       const cloudId = await this.supabaseService.syncScore(entry);
       this.markAsSynced(entry.id, cloudId);
-      console.log(`Puntuación sincronizada: ${entry.playerName} - ${entry.score}`);
+      // Puntuación sincronizada
     } catch (error) {
       console.warn('Error sincronizando puntuación:', error);
       // No lanzamos el error para no interrumpir el flujo del juego
@@ -329,7 +329,7 @@ export class LeaderboardService {
     setTimeout(() => {
       this.syncAllUnsyncedScores().then(result => {
         if (result.success && result.syncedCount > 0) {
-          console.log(`Sincronización automática completada: ${result.syncedCount} puntuaciones sincronizadas`);
+          // Sincronización automática completada
         }
       }).catch(error => {
         console.warn('Error en sincronización automática:', error);

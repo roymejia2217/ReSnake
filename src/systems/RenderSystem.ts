@@ -83,23 +83,48 @@ export class RenderSystem implements System {
   
   /**
    * Actualiza el tamaño del canvas según el viewport
+   * REFACTORIZADO: Cálculo mejorado para evitar corte de última fila
    */
   private updateCanvasSize(): void {
     const container = this.canvas.parentElement;
     if (!container) return;
     
+    // Calcular espacio disponible con márgenes seguros
     const maxWidth = Math.min(window.innerWidth - 40, 600);
-    const maxHeight = window.innerHeight - 250;
-    const availableSize = Math.min(maxWidth, maxHeight);
     
-    this.cellSize = Math.floor(availableSize / GAME_CONFIG.BOARD_SIZE);
-    this.cellSize = Math.max(this.cellSize, 10);
+    // ✅ SOLUCIÓN: Reservar espacio dinámico para panel y mensajes
+    // Panel de score: ~80px + Mensaje romántico: ~30px + Controles móviles: ~80px + Margen: 60px
+    const reservedHeight = 250;
+    const maxHeight = window.innerHeight - reservedHeight;
     
-    const canvasSize = GAME_CONFIG.BOARD_SIZE * this.cellSize;
+    // Calcular cellSize basado en el espacio disponible
+    let cellSize = Math.floor(Math.min(maxWidth, maxHeight) / GAME_CONFIG.BOARD_SIZE);
+    cellSize = Math.max(cellSize, 10); // Tamaño mínimo
+    
+    // ✅ SOLUCIÓN: Verificar que el canvas completo quepa en el espacio vertical
+    let canvasSize = GAME_CONFIG.BOARD_SIZE * cellSize;
+    
+    // Si el canvas es más alto que el espacio disponible, recalcular
+    if (canvasSize > maxHeight) {
+      cellSize = Math.floor(maxHeight / GAME_CONFIG.BOARD_SIZE);
+      cellSize = Math.max(cellSize, 10);
+      canvasSize = GAME_CONFIG.BOARD_SIZE * cellSize;
+    }
+    
+    // Si el canvas es más ancho que el espacio disponible, recalcular
+    if (canvasSize > maxWidth) {
+      cellSize = Math.floor(maxWidth / GAME_CONFIG.BOARD_SIZE);
+      cellSize = Math.max(cellSize, 10);
+      canvasSize = GAME_CONFIG.BOARD_SIZE * cellSize;
+    }
+    
+    this.cellSize = cellSize;
     this.canvas.width = canvasSize;
     this.canvas.height = canvasSize;
     this.canvas.style.width = `${canvasSize}px`;
     this.canvas.style.height = `${canvasSize}px`;
+    
+    // Canvas actualizado
   }
   
   /**
