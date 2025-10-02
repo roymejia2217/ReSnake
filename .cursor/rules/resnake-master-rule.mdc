@@ -1,0 +1,268 @@
+---
+description: Regla maestra de ReSnake - Contexto completo, análisis obligatorio y mejores prácticas
+globs: **/*
+alwaysApply: true
+---
+
+# REGLA MAESTRA - PROYECTO RESNAKE
+
+## 🚨 PROTOCOLO OBLIGATORIO DE ANÁLISIS
+
+### ANTES DE CUALQUIER ACCIÓN EN EL PROYECTO:
+
+#### 1. CONSULTA OBLIGATORIA AL GRAFO DE CONOCIMIENTO
+```typescript
+// ✅ SIEMPRE EJECUTAR PRIMERO
+mcp_memory_aim_read_graph({}) // Leer contexto completo
+mcp_memory_aim_search_nodes({query: "componente_objetivo"}) // Buscar entidad específica
+```
+
+#### 2. ANÁLISIS ARQUITECTÓNICO MCP
+```bash
+# ✅ SIEMPRE EJECUTAR
+npx mcp-adr-analysis-server --test # Health check
+PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server # Análisis completo
+```
+
+#### 3. LECTURA OBLIGATORIA DE ARCHIVOS
+**LEER COMPLETAMENTE antes de modificar:**
+- `docs/adrs/001-ecs-architecture-decision.md` - Arquitectura ECS
+- `docs/ARCHITECTURE_ANALYSIS.md` - Análisis completo
+- `src/core/Engine.ts` - Motor del juego
+- `src/main.ts` - Punto de entrada (888 líneas)
+
+## 🎯 IDENTIDAD CRÍTICA DEL PROYECTO
+
+### Datos Fundamentales
+- **Nombre**: ReSnake
+- **Arquitectura**: Entity-Component-System (ECS)
+- **Puntuación**: 9/10 (EXCELENTE - NO DEGRADAR)
+- **Build Size**: ~8KB gzipped (CRÍTICO - NO EXCEDER)
+- **Demo**: https://roymejia2217.github.io/ReSnake/
+- **Grafo de Conocimiento**: 29 entidades, 44 relaciones
+
+### Stack Tecnológico
+- **TypeScript 5.3+** (configuración estricta)
+- **Vite 5.0+** (HMR, build optimizado)
+- **Canvas API** (renderizado 2D de alto rendimiento)
+- **Supabase** (leaderboard global)
+- **GitHub Pages** (deploy automático)
+
+## 🏗️ ARQUITECTURA ECS - NO MODIFICAR SIN ENTENDER
+
+### Estructura Fundamental
+```
+src/
+├── components/     # Datos puros (Position, Velocity, Renderable, Collidable)
+├── entities/       # Contenedores (Snake, Food)
+├── systems/        # Lógica (Input, Movement, Collision, Render)
+├── core/          # Motor (Engine.ts, types.ts)
+├── services/      # Servicios (11 servicios especializados)
+└── config/        # Configuración centralizada
+```
+
+### Principios SOLID - OBLIGATORIOS
+- **Single Responsibility**: Una responsabilidad por clase
+- **Open/Closed**: Extensible sin modificar existente
+- **Liskov Substitution**: Entidades intercambiables
+- **Interface Segregation**: Componentes específicos
+- **Dependency Inversion**: Abstracciones, no implementaciones
+
+## 🎮 FUNCIONALIDADES CRÍTICAS - PRESERVAR SIEMPRE
+
+### Easter Egg Romántico (FUNCIONALIDAD ÚNICA)
+- **Activación**: Puntuación 69 en modo clásico
+- **Efectos**: Lluvia de corazones, mensajes especiales
+- **Servicio**: RomanticEasterEggService
+- **Integración**: RenderSystem, ScoreService
+
+### Sistema de Controles
+- **Desktop**: Flechas + Espacio/P para pausa
+- **Móvil**: Botones táctiles + gestos swipe
+- **Responsivo**: Adaptación automática a pantallas
+
+### Leaderboard Global
+- **Backend**: Supabase con Row Level Security
+- **Funcionalidad**: Puntuaciones globales, récords
+- **Sincronización**: Offline-first
+
+## 🔧 SERVICIOS DEL PROYECTO (11 servicios)
+
+### Servicios Principales
+1. **ThemeService** - Temas claro/oscuro
+2. **ScoreService** - Puntuación y récords
+3. **LeaderboardService** - Integración Supabase
+4. **SoundService** - Efectos de sonido
+5. **I18nService** - Internacionalización (es, en, it)
+6. **RomanticEasterEggService** - Easter egg especial
+7. **UserService** - Gestión de jugadores
+8. **GameModeService** - Configuración de modos
+9. **MenuService** - Navegación entre pantallas
+10. **LogoService** - Logo dinámico
+11. **StorageService** - Persistencia local
+
+## 📊 MÉTRICAS CRÍTICAS - NO DEGRADAR
+
+### Rendimiento
+- **Build Size**: HTML (1.12KB) + CSS (1.60KB) + JS (5.32KB) = ~8KB gzipped
+- **Tiempo de carga**: Instantáneo
+- **Navegadores**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+
+### Arquitectura
+- **Puntuación**: 9/10 (EXCELENTE)
+- **Entidades ECS**: 4 componentes + 2 entidades + 4 sistemas
+- **Servicios**: 11 servicios especializados
+- **ADRs**: 5 Architectural Decision Records
+
+## 🧠 MCP KNOWLEDGE GRAPH - CONTEXTO PERSISTENTE
+
+### Entidades en el Grafo (29 entidades)
+**SIEMPRE consultar antes de modificar:**
+
+#### Entidades Principales
+- **ReSnake** (proyecto principal - 20 observaciones)
+- **GameEngine** (motor del juego - 11 observaciones)
+- **Snake** (entidad principal - 11 observaciones)
+- **Food** (entidad de comida - 4 observaciones)
+
+#### Sistemas ECS
+- **InputSystem, MovementSystem, CollisionSystem, RenderSystem**
+
+#### Componentes ECS
+- **Position, Velocity, Renderable, Collidable**
+
+#### Servicios (11 servicios)
+- **ThemeService, ScoreService, LeaderboardService, SoundService**
+- **I18nService, RomanticEasterEggService, UserService**
+- **GameModeService, MenuService, LogoService**
+
+#### Tecnologías
+- **TypeScript, Vite, Canvas_API, Supabase, GitHub_Pages**
+
+#### Patrones y Principios
+- **ECS_Architecture** (9 observaciones)
+- **SOLID_Principles** (9 observaciones)
+- **Mobile_Support, Game_Modes**
+
+### Relaciones Críticas (44 relaciones)
+**Entender impacto antes de modificar:**
+```
+ReSnake → GameEngine (contains)
+ReSnake → Snake (contains)
+ReSnake → Food (contains)
+GameEngine → [InputSystem, MovementSystem, CollisionSystem, RenderSystem] (manages)
+Snake → [Position, Velocity, Renderable, Collidable] (uses)
+Food → [Position, Renderable, Collidable] (uses)
+```
+
+## 📚 ADRs - DECISIONES ARQUITECTÓNICAS
+
+### ADRs Documentados (5 ADRs)
+1. **ADR-001**: Arquitectura ECS
+2. **ADR-002**: TypeScript estricto
+3. **ADR-003**: Vite como build tool
+4. **ADR-004**: Canvas API para renderizado
+5. **ADR-005**: Supabase para leaderboard
+
+**SIEMPRE consultar ADRs relevantes antes de cambios arquitectónicos**
+
+## ⚠️ REGLAS DE MODIFICACIÓN ESTRICTAS
+
+### PROHIBIDO ABSOLUTO
+- ❌ Modificar código sin consultar el grafo de conocimiento
+- ❌ Romper la arquitectura ECS establecida
+- ❌ Degradar la puntuación del proyecto (9/10)
+- ❌ Exceder el tamaño de build (~8KB)
+- ❌ Hardcodear valores (usar constants.ts)
+- ❌ Ignorar principios SOLID
+- ❌ Romper responsividad móvil
+- ❌ Dañar el Easter Egg romántico
+
+### OBLIGATORIO SIEMPRE
+- ✅ Consultar grafo de conocimiento MCP
+- ✅ Leer archivos completos antes de modificar
+- ✅ Mantener arquitectura ECS
+- ✅ Preservar funcionalidades críticas
+- ✅ Usar TypeScript con tipado estricto
+- ✅ Seguir principios SOLID
+- ✅ Mantener responsividad móvil
+- ✅ Preservar Easter Egg romántico
+- ✅ Documentar cambios arquitectónicos
+
+## 🔍 CHECKLIST OBLIGATORIO
+
+### Pre-Modificación
+- [ ] ✅ Consulté el grafo de conocimiento MCP
+- [ ] ✅ Leí completamente el archivo objetivo
+- [ ] ✅ Entendí su rol en la arquitectura ECS
+- [ ] ✅ Verifiqué relaciones con otros componentes
+- [ ] ✅ Revisé ADRs relevantes
+- [ ] ✅ Analicé impacto en puntuación del proyecto
+
+### Durante Modificación
+- [ ] ✅ Mantuve arquitectura ECS
+- [ ] ✅ Preservé funcionalidades críticas
+- [ ] ✅ Usé TypeScript con tipado estricto
+- [ ] ✅ Seguí principios SOLID
+- [ ] ✅ No hardcodeé valores
+- [ ] ✅ Mantuve responsividad móvil
+
+### Post-Modificación
+- [ ] ✅ Actualicé grafo de conocimiento
+- [ ] ✅ Documenté cambios significativos
+- [ ] ✅ Ejecuté análisis MCP de validación
+- [ ] ✅ Verifiqué que puntuación se mantiene (9/10)
+- [ ] ✅ Confirmé que build size no excede ~8KB
+
+## 🎯 OBJETIVOS DEL PROYECTO
+
+### Metas Principales
+- Mantener arquitectura ECS sólida y funcional
+- Preservar rendimiento excelente (~8KB build)
+- Mantener compatibilidad móvil completa
+- Expandir funcionalidades siguiendo patrones establecidos
+- Preservar Easter Egg romántico único
+
+### Futuras Mejoras Planificadas
+- Tests unitarios para sistemas críticos
+- Progressive Web App (PWA)
+- Modo multijugador
+- Sistema de mods/plugins
+
+## 🚀 COMANDOS CRÍTICOS
+
+### Desarrollo
+```bash
+npm run dev      # Servidor de desarrollo con HMR
+npm run build    # Build de producción
+npm run preview  # Preview del build
+```
+
+### Análisis MCP
+```bash
+# Health check obligatorio
+npx mcp-adr-analysis-server --test
+
+# Análisis completo del proyecto
+PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server
+```
+
+### Configuración MCP
+```json
+{
+  "mcpServers": {
+    "memory": {"command": "npx", "args": ["-y", "mcp-knowledge-graph"]},
+    "mind-map": {"command": "npx", "args": ["-y", "mind-map-mcp"]},
+    "adr-analysis": {"command": "npx", "args": ["-y", "mcp-adr-analysis-server"]}
+  }
+}
+```
+
+---
+
+## 🎯 RECORDATORIO FINAL
+
+**ESTE PROYECTO TIENE UNA ARQUITECTURA ECS EXCELENTE (9/10) CON UN GRAFO DE CONOCIMIENTO COMPLETO. SIEMPRE CONSULTAR EL CONTEXTO MCP ANTES DE CUALQUIER MODIFICACIÓN. EL CONOCIMIENTO ESTÁ PERSISTIDO Y DEBE SER LA FUENTE DE VERDAD PARA TODAS LAS DECISIONES.**
+
+**NO MODIFICAR SIN COMPRENDER PRIMERO LA ARQUITECTURA Y EL IMPACTO EN EL PROYECTO COMPLETO.**
+

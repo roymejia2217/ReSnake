@@ -1,0 +1,356 @@
+---
+description: Regla específica de análisis de código para ReSnake - patrones, anti-patrones y validaciones
+globs: src/**/*.ts, src/**/*.js
+alwaysApply: true
+---
+
+# Análisis de Código - Proyecto ReSnake
+
+## 🔍 ANÁLISIS OBLIGATORIO ANTES DE MODIFICAR CÓDIGO
+
+### Pre-Análisis Requerido
+**ANTES de tocar cualquier línea de código:**
+
+1. **LEER COMPLETAMENTE** el archivo objetivo
+2. **IDENTIFICAR** su rol en la arquitectura ECS
+3. **CONSULTAR** el grafo de conocimiento MCP
+4. **ENTENDER** las relaciones con otros componentes
+5. **VERIFICAR** que la modificación respeta SOLID
+
+## 🏗️ PATRONES DE ARQUITECTURA ECS
+
+### ✅ Patrones Correctos - SIEMPRE USAR
+
+#### Componentes (src/components/)
+```typescript
+// ✅ CORRECTO: Componente puro con datos
+export class Position {
+  constructor(public x: number, public y: number) {}
+  
+  equals(other: Position): boolean {
+    return this.x === other.x && this.y === other.y;
+  }
+}
+```
+
+#### Entidades (src/entities/)
+```typescript
+// ✅ CORRECTO: Entidad que compone componentes
+export class Snake extends BaseEntity {
+  constructor(initialPosition: Position) {
+    super('snake');
+    this.addComponent(new Position(initialPosition.x, initialPosition.y));
+    this.addComponent(new Velocity(DIRECTIONS.RIGHT.x, DIRECTIONS.RIGHT.y));
+  }
+}
+```
+
+#### Sistemas (src/systems/)
+```typescript
+// ✅ CORRECTO: Sistema que procesa entidades
+export class MovementSystem implements System {
+  update(deltaTime: number, entities: Entity[]): void {
+    entities.forEach(entity => {
+      if (entity.hasComponent(Position) && entity.hasComponent(Velocity)) {
+        // Procesar movimiento
+      }
+    });
+  }
+}
+```
+
+### ❌ Anti-Patrones Prohibidos
+
+```typescript
+// ❌ PROHIBIDO: Lógica en componentes
+export class Position {
+  move(direction: Direction): void { // ❌ Componente no debe tener lógica
+    this.x += direction.x;
+    this.y += direction.y;
+  }
+}
+
+// ❌ PROHIBIDO: Sistema que modifica directamente propiedades
+export class MovementSystem {
+  update(deltaTime: number, entities: Entity[]): void {
+    entities.forEach(entity => {
+      entity.x += 1; // ❌ Acceso directo a propiedades
+    });
+  }
+}
+
+// ❌ PROHIBIDO: Herencia profunda
+export class AdvancedSnake extends Snake extends Entity { // ❌ Múltiples herencias
+}
+```
+
+## 🎯 ANÁLISIS POR TIPO DE ARCHIVO
+
+### Archivos de Componentes (src/components/)
+**Validaciones obligatorias:**
+- ✅ Solo contienen datos (estructuras puras)
+- ✅ No tienen lógica de negocio
+- ✅ Métodos utilitarios simples (equals, clone)
+- ✅ Inmutables cuando sea posible
+- ❌ No tienen dependencias externas
+- ❌ No manejan estado mutable
+
+### Archivos de Entidades (src/entities/)
+**Validaciones obligatorias:**
+- ✅ Heredan de BaseEntity
+- ✅ Componen componentes en constructor
+- ✅ Lógica específica de la entidad únicamente
+- ✅ Métodos que encapsulan comportamiento específico
+- ❌ No procesan otras entidades
+- ❌ No contienen lógica de sistemas
+
+### Archivos de Sistemas (src/systems/)
+**Validaciones obligatorias:**
+- ✅ Implementan interface System
+- ✅ Procesan entidades con componentes específicos
+- ✅ Una sola responsabilidad por sistema
+- ✅ Método update() con deltaTime
+- ❌ No manejan estado persistente
+- ❌ No dependen de otros sistemas directamente
+
+### Archivos de Servicios (src/services/)
+**Validaciones obligatorias:**
+- ✅ Patrón singleton cuando sea apropiado
+- ✅ Responsabilidad única y bien definida
+- ✅ Inyección de dependencias
+- ✅ Manejo de errores apropiado
+- ❌ No contienen lógica de renderizado
+- ❌ No acceden directamente al DOM
+
+## 🔧 ANÁLISIS DE INTEGRACIÓN
+
+### Verificaciones de Integración
+**Antes de modificar cualquier archivo, verificar:**
+
+1. **Dependencias Importadas**
+   ```typescript
+   // ✅ CORRECTO: Imports específicos
+   import { Position } from '@/components/Position';
+   import { DIRECTIONS } from '@/config/constants';
+   
+   // ❌ INCORRECTO: Imports genéricos
+   import * from '@/components';
+   ```
+
+2. **Uso de Configuración Centralizada**
+   ```typescript
+   // ✅ CORRECTO: Usar constantes centralizadas
+   import { GAME_CONFIG, DIRECTIONS } from '@/config/constants';
+   
+   // ❌ INCORRECTO: Valores hardcodeados
+   const BOARD_SIZE = 20; // ❌ Debe estar en constants.ts
+   ```
+
+3. **Tipado Estricto**
+   ```typescript
+   // ✅ CORRECTO: Tipos explícitos
+   function moveSnake(snake: Snake, direction: Direction): void {
+   
+   // ❌ INCORRECTO: Tipos implícitos
+   function moveSnake(snake, direction) { // ❌ Sin tipos
+   ```
+
+## 🎮 ANÁLISIS ESPECÍFICO DEL JUEGO
+
+### Funcionalidades Críticas a Preservar
+
+#### Sistema de Pausa
+```typescript
+// ✅ CORRECTO: Pausa completa del game loop
+private togglePause(): void {
+  if (this.isPaused) {
+    this.engine?.resume();
+    this.inputSystem?.enable();
+  } else {
+    this.engine?.pause();
+    this.inputSystem?.disable();
+  }
+}
+```
+
+#### Wrap-around del Movimiento
+```typescript
+// ✅ CORRECTO: Movimiento con wrap-around
+private wrapPosition(position: Position): Position {
+  return new Position(
+    (position.x + GAME_CONFIG.BOARD_SIZE) % GAME_CONFIG.BOARD_SIZE,
+    (position.y + GAME_CONFIG.BOARD_SIZE) % GAME_CONFIG.BOARD_SIZE
+  );
+}
+```
+
+#### Easter Egg Romántico
+```typescript
+// ✅ CORRECTO: Activación condicional del Easter Egg
+if (score === ROMANTIC_EASTER_EGG_CONFIG.SPECIAL_SCORE && 
+    romanticEasterEgg.isEasterEggActive() && 
+    this.currentMode === 'classic') {
+  renderSystem.startHeartRain();
+}
+```
+
+## 📱 ANÁLISIS DE RESPONSIVIDAD
+
+### Controles Móviles - SIEMPRE PRESERVAR
+```typescript
+// ✅ CORRECTO: Soporte móvil y desktop
+private setupInputHandlers(): void {
+  // Desktop
+  document.addEventListener('keydown', this.handleKeyDown);
+  
+  // Móvil
+  canvas.addEventListener('touchstart', this.handleTouchStart);
+  canvas.addEventListener('touchmove', this.handleTouchMove);
+}
+```
+
+### Layout Responsivo
+```css
+/* ✅ CORRECTO: Media queries para móvil */
+@media (max-width: 768px) {
+  .game-container {
+    flex-direction: column;
+  }
+  
+  .controls-mobile {
+    display: flex;
+  }
+}
+```
+
+## 🔍 ANÁLISIS DE RENDIMIENTO
+
+### Optimizaciones Críticas a Mantener
+
+#### RequestAnimationFrame
+```typescript
+// ✅ CORRECTO: Game loop optimizado
+private loop = (timestamp: number): void => {
+  if (this.state !== GameState.PLAYING) return;
+  
+  const deltaTime = timestamp - this.lastTimestamp;
+  this.lastTimestamp = timestamp;
+  
+  this.update(deltaTime);
+  this.animationFrameId = requestAnimationFrame(this.loop);
+};
+```
+
+#### Canvas Rendering
+```typescript
+// ✅ CORRECTO: Renderizado eficiente
+private render(): void {
+  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  
+  // Renderizar solo entidades visibles
+  this.entities.forEach(entity => {
+    if (entity.hasComponent(Renderable)) {
+      this.renderEntity(entity);
+    }
+  });
+}
+```
+
+## 🧪 ANÁLISIS DE TESTING
+
+### Estructura de Tests Requerida
+```typescript
+// ✅ CORRECTO: Tests para componentes
+describe('Position', () => {
+  it('should compare positions correctly', () => {
+    const pos1 = new Position(10, 20);
+    const pos2 = new Position(10, 20);
+    expect(pos1.equals(pos2)).toBe(true);
+  });
+});
+
+// ✅ CORRECTO: Tests para sistemas
+describe('MovementSystem', () => {
+  it('should move entities with velocity', () => {
+    const system = new MovementSystem();
+    const entity = createTestEntity();
+    
+    system.update(16, [entity]);
+    
+    expect(entity.getComponent(Position).x).toBe(11);
+  });
+});
+```
+
+## 📊 MÉTRICAS DE CÓDIGO
+
+### Indicadores de Calidad
+- **Complejidad Ciclomática**: < 10 por método
+- **Líneas por función**: < 50 líneas
+- **Líneas por archivo**: < 300 líneas
+- **Cobertura de tipos**: 100%
+- **Dependencias**: Mínimas y explícitas
+
+### Análisis de Complejidad
+```typescript
+// ✅ CORRECTO: Método simple y enfocado
+public grow(): void {
+  this.shouldGrow = true;
+}
+
+// ❌ INCORRECTO: Método complejo con múltiples responsabilidades
+public complexMethod(): void {
+  // 100+ líneas de código mezclando lógica
+  // Múltiples responsabilidades
+  // Dificil de testear
+}
+```
+
+## 🔄 ANÁLISIS DE REFACTORING
+
+### Señales de Necesidad de Refactoring
+1. **Métodos > 50 líneas**
+2. **Clases > 300 líneas**
+3. **Duplicación de código**
+4. **Múltiples niveles de anidación**
+5. **Dependencias circulares**
+
+### Patrones de Refactoring Aprobados
+```typescript
+// ✅ CORRECTO: Extraer método
+private handleGameOver(): void {
+  this.stopGame();
+  this.showGameOverScreen();
+  this.updateLeaderboard();
+}
+
+// ✅ CORRECTO: Usar constantes
+private getGameOverMessage(): string {
+  return this.i18n.t('game.gameOver');
+}
+```
+
+## ⚠️ CHECKLIST OBLIGATORIO
+
+### Antes de Commit
+- [ ] ✅ Código sigue arquitectura ECS
+- [ ] ✅ Tipado estricto de TypeScript
+- [ ] ✅ No hay valores hardcodeados
+- [ ] ✅ Responsividad móvil preservada
+- [ ] ✅ Principios SOLID aplicados
+- [ ] ✅ Sin dependencias circulares
+- [ ] ✅ Manejo de errores apropiado
+- [ ] ✅ Documentación JSDoc actualizada
+
+### Análisis de Impacto
+- [ ] ✅ Cambios no afectan otros sistemas
+- [ ] ✅ Performance mantenido
+- [ ] ✅ Easter Egg funcional
+- [ ] ✅ Leaderboard operativo
+- [ ] ✅ Controles móviles funcionando
+- [ ] ✅ Build size no incrementado significativamente
+
+---
+
+**🎯 RECORDATORIO**: Este análisis debe ejecutarse ANTES de cualquier modificación de código. El proyecto ReSnake tiene una arquitectura ECS bien establecida que debe ser preservada y respetada en todo momento.
+

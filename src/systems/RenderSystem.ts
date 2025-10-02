@@ -12,10 +12,12 @@ import type { Snake } from '@/entities/Snake';
 import type { Food } from '@/entities/Food';
 import type { SuperFood } from '@/entities/SuperFood';
 import { Renderable } from '@/components/Renderable';
+import { Position } from '@/components/Position';
 import { GAME_CONFIG, SUPER_FOOD_CONFIG } from '@/config/constants';
 import { lerp } from '@/utils/AnimationHelper';
 import type { Velocity } from '@/components/Velocity';
 import type { RomanticEasterEggService } from '@/services/RomanticEasterEggService';
+import type { SpriteService } from '@/services/SpriteService';
 
 // Interfaz para partículas de corazón en la lluvia
 interface HeartParticle {
@@ -43,6 +45,9 @@ export class RenderSystem implements System {
   
   // Servicio de easter egg romántico
   private romanticEasterEgg?: RomanticEasterEggService;
+  
+  // ✅ NUEVO: Servicio de sprites para renderizado optimizado
+  private spriteService?: SpriteService;
   
   // Control de barra de progreso de supermanzana
   private superFoodExpireAt: number | null = null;
@@ -199,72 +204,145 @@ export class RenderSystem implements System {
   }
   
   /**
-   * Dibuja la serpiente con diseño mejorado
+   * Dibuja la serpiente usando sprites optimizados con rotación automática
+   * ✅ NUEVA IMPLEMENTACIÓN: Renderizado con sprites para mejor rendimiento
    */
   private renderSnake(): void {
-    const renderable = this.snake.getComponent<Renderable>('Renderable');
-    if (!renderable) return;
-    
     const body = this.snake.body;
-    if (body.length === 0) return;
+    if (body.length === 0 || !this.spriteService) return;
     
-    // Dibuja las conexiones entre segmentos primero
-    this.drawSnakeConnections(body, renderable.color);
+    // ✅ Obtener dirección del movimiento para rotación
+    const velocity = this.snake.getComponent<Velocity>('Velocity');
+    const rotationAngle = this.getRotationAngle(velocity, body);
     
-    // Dibuja los segmentos del cuerpo
+    // ✅ RENDERIZADO OPTIMIZADO: Usar sprites con rotación automática
     body.forEach((segment, index) => {
-      if (index === 0) {
-        // Cabeza con diseño especial
-        this.drawSnakeHead(segment, renderable.color);
-      } else if (index === body.length - 1) {
-        // Cola con animación de crecimiento
-        const scale = this.snake.hasJustGrown 
-          ? lerp(0.5, 1, this.snake.getGrowthProgress(this.currentTime))
-          : 1;
-        this.drawSnakeSegment(segment, renderable.color, scale, true);
+      const spriteType = this.spriteService!.getSpriteTypeForPosition(index, body.length);
+      const sprite = this.spriteService!.getSprite(spriteType);
+      
+      if (sprite) {
+        const x = segment.x * this.cellSize;
+        const y = segment.y * this.cellSize;
+        
+        // Animación de crecimiento solo para la cola
+        if (spriteType === 'tail' && this.snake.hasJustGrown) {
+          const scale = lerp(0.5, 1, this.snake.getGrowthProgress(this.currentTime));
+          this.drawRotatedScaledSprite(sprite, x, y, scale, rotationAngle[index]);
+        } else {
+          // Renderizado normal con rotación
+          this.drawRotatedSprite(sprite, x, y, rotationAngle[index]);
+        }
       } else {
-        // Segmentos normales del cuerpo
-        this.drawSnakeSegment(segment, renderable.color, 1, false);
+        // Fallback: usar renderizado Canvas original si no hay sprites
+        this.renderSnakeFallback(segment, index, body.length);
       }
     });
   }
   
   /**
-   * Dibuja las conexiones suaves entre segmentos
-   * Evita dibujar conexiones cuando hay wrap-around en los bordes
+   * ✅ NUEVO: Calcula ángulos de rotación para cada segmento de la serpiente
    */
-  private drawSnakeConnections(body: Array<{x: number, y: number}>, color: string): void {
-    if (body.length < 2) return;
+  private getRotationAngle(velocity: Velocity | undefined, body: Position[]): number[] {
+    const angles: number[] = [];
     
-    this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = this.cellSize * 0.8;
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
-    
-    for (let i = 0; i < body.length - 1; i++) {
-      const current = body[i];
-      const next = body[i + 1];
-      
-      // Detecta wrap-around: si la distancia entre segmentos es mayor que 1, hay wrap
-      const deltaX = Math.abs(current.x - next.x);
-      const deltaY = Math.abs(current.y - next.y);
-      
-      // Si hay wrap-around, no dibuja la conexión
-      if (deltaX > 1 || deltaY > 1) {
-        continue;
+    for (let i = 0; i < body.length; i++) {
+      if (i === 0) {
+        // Cabeza: rotación basada en dirección actual
+        angles.push(this.getDirectionAngle(velocity));
+      } else if (i === body.length - 1) {
+        // Cola: rotación basada en dirección hacia el segmento anterior
+        const tailDirection = this.getSegmentDirection(body[i], body[i - 1]);
+        angles.push(this.getDirectionAngle(tailDirection));
+      } else {
+        // Cuerpo: rotación basada en dirección entre segmentos adyacentes
+        const bodyDirection = this.getSegmentDirection(body[i - 1], body[i + 1]);
+        angles.push(this.getDirectionAngle(bodyDirection));
       }
-      
-      const x1 = current.x * this.cellSize + this.cellSize / 2;
-      const y1 = current.y * this.cellSize + this.cellSize / 2;
-      const x2 = next.x * this.cellSize + this.cellSize / 2;
-      const y2 = next.y * this.cellSize + this.cellSize / 2;
-      
-      this.ctx.beginPath();
-      this.ctx.moveTo(x1, y1);
-      this.ctx.lineTo(x2, y2);
-      this.ctx.stroke();
+    }
+    
+    return angles;
+  }
+  
+  /**
+   * ✅ NUEVO: Calcula la dirección entre dos segmentos
+   */
+  private getSegmentDirection(from: Position, to: Position): { x: number; y: number } {
+    return {
+      x: to.x - from.x,
+      y: to.y - from.y
+    };
+  }
+  
+  /**
+   * ✅ CORREGIDO: Convierte dirección a ángulo en radianes
+   * Los sprites están diseñados para ir hacia ARRIBA por defecto
+   */
+  private getDirectionAngle(direction: { x: number; y: number } | undefined): number {
+    if (!direction) return 0;
+    
+    // Mapeo de direcciones a ángulos (sprites diseñados para UP por defecto):
+    // UP (0,-1) = 0° (por defecto - sin rotación)
+    // RIGHT (1,0) = 90° (rotar 90° hacia la derecha)
+    // DOWN (0,1) = 180° (rotar 180° - invertir)
+    // LEFT (-1,0) = 270° (rotar 270° hacia la izquierda)
+    
+    if (direction.x > 0) return Math.PI / 2;     // Derecha: 90°
+    if (direction.x < 0) return 3 * Math.PI / 2; // Izquierda: 270°
+    if (direction.y > 0) return Math.PI;         // Abajo: 180°
+    if (direction.y < 0) return 0;               // Arriba: 0° (por defecto)
+    
+    return 0; // Por defecto (arriba)
+  }
+  
+  /**
+   * ✅ NUEVO: Dibuja un sprite con rotación
+   */
+  private drawRotatedSprite(sprite: HTMLImageElement, x: number, y: number, angle: number): void {
+    const centerX = x + this.cellSize / 2;
+    const centerY = y + this.cellSize / 2;
+    
+    this.ctx.save();
+    this.ctx.translate(centerX, centerY);
+    this.ctx.rotate(angle);
+    this.ctx.drawImage(sprite, -this.cellSize / 2, -this.cellSize / 2, this.cellSize, this.cellSize);
+    this.ctx.restore();
+  }
+  
+  /**
+   * ✅ NUEVO: Dibuja un sprite con rotación y escalado
+   */
+  private drawRotatedScaledSprite(sprite: HTMLImageElement, x: number, y: number, scale: number, angle: number): void {
+    const scaledSize = this.cellSize * scale;
+    const centerX = x + this.cellSize / 2;
+    const centerY = y + this.cellSize / 2;
+    
+    this.ctx.save();
+    this.ctx.translate(centerX, centerY);
+    this.ctx.rotate(angle);
+    this.ctx.drawImage(sprite, -scaledSize / 2, -scaledSize / 2, scaledSize, scaledSize);
+    this.ctx.restore();
+  }
+  
+  
+  /**
+   * Fallback: renderizado Canvas original (para casos sin sprites)
+   */
+  private renderSnakeFallback(segment: Position, index: number, totalLength: number): void {
+    const renderable = this.snake.getComponent<Renderable>('Renderable');
+    if (!renderable) return;
+    
+    if (index === 0) {
+      this.drawSnakeHead(segment, renderable.color);
+    } else if (index === totalLength - 1) {
+      const scale = this.snake.hasJustGrown 
+        ? lerp(0.5, 1, this.snake.getGrowthProgress(this.currentTime))
+        : 1;
+      this.drawSnakeSegment(segment, renderable.color, scale, true);
+    } else {
+      this.drawSnakeSegment(segment, renderable.color, 1, false);
     }
   }
+  
   
   /**
    * Dibuja la cabeza de la serpiente con ojos y dirección
@@ -723,6 +801,13 @@ export class RenderSystem implements System {
    */
   setRomanticEasterEgg(romanticEasterEgg: RomanticEasterEggService): void {
     this.romanticEasterEgg = romanticEasterEgg;
+  }
+  
+  /**
+   * ✅ NUEVO: Establece el servicio de sprites
+   */
+  setSpriteService(spriteService: SpriteService): void {
+    this.spriteService = spriteService;
   }
 
   /**

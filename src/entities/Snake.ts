@@ -22,8 +22,13 @@ export class Snake extends BaseEntity {
   constructor(initialPosition: Position) {
     super('snake');
     
-    // Inicializa el cuerpo con una posición
-    this.body.push(initialPosition);
+    // ✅ NUEVO: Inicializa el cuerpo con 3 segmentos (cabeza + cuerpo + cola)
+    // Esto mejora la experiencia visual desde el inicio
+    this.body = [
+      initialPosition,                                    // Cabeza (posición inicial)
+      new Position(initialPosition.x - 1, initialPosition.y), // Cuerpo (izquierda de la cabeza)
+      new Position(initialPosition.x - 2, initialPosition.y)  // Cola (izquierda del cuerpo)
+    ];
     
     // Añade componentes
     this.addComponent(new Velocity(DIRECTIONS.RIGHT.x, DIRECTIONS.RIGHT.y));

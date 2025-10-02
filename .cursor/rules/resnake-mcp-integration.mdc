@@ -1,0 +1,281 @@
+---
+description: Regla de integración MCP para ReSnake - uso del grafo de conocimiento y análisis arquitectónico
+globs: **/*
+alwaysApply: true
+---
+
+# Integración MCP - Proyecto ReSnake
+
+## 🧠 MCP KNOWLEDGE GRAPH - USO OBLIGATORIO
+
+### Contexto Persistente Activo
+**ANTES de hacer cualquier modificación, SIEMPRE consultar:**
+
+```typescript
+// ✅ OBLIGATORIO: Consultar entidades relacionadas
+mcp_memory_aim_search_nodes({query: "Snake"})
+mcp_memory_aim_open_nodes({names: ["GameEngine", "ECS_Architecture"]})
+
+// ✅ OBLIGATORIO: Verificar relaciones antes de cambios
+mcp_memory_aim_read_graph({})
+```
+
+### Entidades del Grafo de Conocimiento (29 entidades)
+**SIEMPRE considerar estas entidades en el análisis:**
+
+#### Entidades Principales
+- **ReSnake** (proyecto principal)
+- **GameEngine** (motor del juego)
+- **Snake** (entidad principal)
+- **Food** (entidad de comida)
+
+#### Sistemas ECS
+- **InputSystem, MovementSystem, CollisionSystem, RenderSystem**
+
+#### Componentes ECS
+- **Position, Velocity, Renderable, Collidable**
+
+#### Servicios
+- **ThemeService, ScoreService, LeaderboardService, SoundService**
+- **I18nService, RomanticEasterEggService, UserService**
+- **GameModeService, MenuService, LogoService**
+
+#### Tecnologías
+- **TypeScript, Vite, Canvas_API, Supabase, GitHub_Pages**
+
+#### Patrones y Principios
+- **ECS_Architecture, SOLID_Principles**
+- **Mobile_Support, Game_Modes**
+
+## 🔗 RELACIONES CRÍTICAS (44 relaciones)
+
+### Relaciones Principales a Considerar
+```typescript
+// ✅ OBLIGATORIO: Entender estas relaciones antes de modificar
+ReSnake → GameEngine (contains)
+ReSnake → Snake (contains)
+ReSnake → Food (contains)
+GameEngine → InputSystem (manages)
+GameEngine → MovementSystem (manages)
+GameEngine → CollisionSystem (manages)
+GameEngine → RenderSystem (manages)
+Snake → Position (uses)
+Snake → Velocity (uses)
+Snake → Renderable (uses)
+Snake → Collidable (uses)
+```
+
+### Relaciones de Servicios
+```typescript
+// ✅ OBLIGATORIO: Considerar impacto en servicios
+ScoreService → MovementSystem (influences)
+LeaderboardService → Supabase (connects_to)
+ThemeService → RenderSystem (affects)
+I18nService → RenderSystem (provides_text_for)
+RomanticEasterEggService → RenderSystem (enhances)
+RomanticEasterEggService → ScoreService (monitors)
+```
+
+## 📊 ANÁLISIS ARQUITECTÓNICO MCP
+
+### Puntuación del Proyecto: 9/10
+**SIEMPRE mantener esta puntuación:**
+- **Diseño**: Excelente (ECS bien implementado)
+- **Tecnologías**: Modernas y apropiadas
+- **Mantenibilidad**: Muy buena
+- **Rendimiento**: Excelente
+- **Seguridad**: Buena
+- **Escalabilidad**: Muy buena
+
+### Métricas Críticas
+- **Build Size**: ~8KB (gzipped) - NO EXCEDER
+- **Entidades en Grafo**: 29
+- **Relaciones**: 44
+- **ADRs**: 5 Architectural Decision Records
+
+## 🎯 CONSULTAS MCP OBLIGATORIAS
+
+### Antes de Modificar Cualquier Archivo
+```typescript
+// 1. Consultar entidades relacionadas
+const relatedEntities = await mcp_memory_aim_search_nodes({
+  query: "nombre_del_componente_o_servicio"
+});
+
+// 2. Abrir entidades específicas
+const entities = await mcp_memory_aim_open_nodes({
+  names: ["GameEngine", "ECS_Architecture", "SOLID_Principles"]
+});
+
+// 3. Leer grafo completo para contexto
+const fullGraph = await mcp_memory_aim_read_graph({});
+```
+
+### Antes de Agregar Nueva Funcionalidad
+```typescript
+// 1. Buscar patrones existentes
+const patterns = await mcp_memory_aim_search_nodes({
+  query: "patrón_a_implementar"
+});
+
+// 2. Verificar compatibilidad con arquitectura ECS
+const ecsInfo = await mcp_memory_aim_open_nodes({
+  names: ["ECS_Architecture", "SOLID_Principles"]
+});
+```
+
+## 📚 ADRS (ARCHITECTURAL DECISION RECORDS)
+
+### ADRs Documentados - SIEMPRE CONSULTAR
+1. **ADR-001**: Implementación de Arquitectura ECS
+2. **ADR-002**: Configuración Estricta de TypeScript
+3. **ADR-003**: Vite como Sistema de Build
+4. **ADR-004**: Canvas API para Renderizado
+5. **ADR-005**: Supabase para Leaderboard Global
+
+### Proceso para Nuevas Decisiones
+```typescript
+// ✅ OBLIGATORIO: Para cambios arquitectónicos significativos
+// 1. Consultar ADRs existentes
+// 2. Evaluar impacto en arquitectura ECS
+// 3. Documentar nueva decisión como ADR
+// 4. Actualizar grafo de conocimiento
+```
+
+## 🔍 ANÁLISIS MCP AUTOMÁTICO
+
+### Comandos de Análisis
+```bash
+# ✅ OBLIGATORIO: Health check antes de cambios
+npx mcp-adr-analysis-server --test
+
+# ✅ OBLIGATORIO: Análisis completo del proyecto
+PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server
+
+# ✅ OBLIGATORIO: Configuración del servidor
+PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake
+ADR_DIRECTORY=docs/adrs
+LOG_LEVEL=INFO
+CACHE_ENABLED=true
+```
+
+### Cache y Performance
+- **Cache Directory**: .mcp-adr-cache
+- **Max Cache Size**: 100MB
+- **Analysis Timeout**: 30000ms
+- **Cache Enabled**: true (por defecto)
+
+## 🎮 CONTEXTO ESPECÍFICO DEL JUEGO
+
+### Funcionalidades Críticas en el Grafo
+```typescript
+// ✅ OBLIGATORIO: Preservar estas funcionalidades
+const criticalFeatures = [
+  "RomanticEasterEggService", // Easter Egg en puntuación 69
+  "Mobile_Support", // Soporte móvil completo
+  "Game_Modes", // Múltiples modos de juego
+  "Canvas_API", // Renderizado de alto rendimiento
+  "Supabase", // Leaderboard global
+  "GitHub_Pages" // Deploy automático
+];
+```
+
+### Easter Egg Romántico - FUNCIONALIDAD CRÍTICA
+```typescript
+// ✅ OBLIGATORIO: Preservar Easter Egg
+// Entidad: RomanticEasterEggService
+// Activación: Puntuación 69 en modo clásico
+// Efectos: Lluvia de corazones, mensajes especiales
+// Relaciones: enhance RenderSystem, monitor ScoreService
+```
+
+## 🔧 INTEGRACIÓN CON SERVICIOS MCP
+
+### Servidores MCP Activos
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "mcp-knowledge-graph", "--memory-path", "C:\\Users\\Roy\\.aim\\"]
+    },
+    "mind-map": {
+      "command": "npx", 
+      "args": ["-y", "mind-map-mcp"]
+    },
+    "adr-analysis": {
+      "command": "npx",
+      "args": ["-y", "mcp-adr-analysis-server"]
+    }
+  }
+}
+```
+
+### Flujo de Trabajo MCP
+1. **Consultar grafo de conocimiento** antes de cambios
+2. **Analizar impacto arquitectónico** con ADR server
+3. **Actualizar conocimiento** después de cambios significativos
+4. **Validar decisiones** contra ADRs existentes
+
+## 📊 MÉTRICAS DE CONOCIMIENTO
+
+### Entidades por Tipo
+- **project**: 1 (ReSnake)
+- **core_system**: 1 (GameEngine)
+- **entity**: 2 (Snake, Food)
+- **system**: 4 (Input, Movement, Collision, Render)
+- **service**: 11 (todos los servicios)
+- **component**: 4 (Position, Velocity, Renderable, Collidable)
+- **technology**: 4 (TypeScript, Vite, Canvas_API, Supabase)
+- **deployment**: 1 (GitHub_Pages)
+- **architecture_pattern**: 1 (ECS_Architecture)
+- **design_principles**: 1 (SOLID_Principles)
+- **feature**: 2 (Mobile_Support, Game_Modes)
+
+### Observaciones por Entidad
+- **ReSnake**: 20 observaciones (proyecto principal)
+- **GameEngine**: 11 observaciones (motor crítico)
+- **Snake**: 11 observaciones (entidad principal)
+- **ECS_Architecture**: 9 observaciones (patrón fundamental)
+- **SOLID_Principles**: 9 observaciones (principios de diseño)
+
+## ⚠️ REGLAS DE USO MCP
+
+### Obligatorio ANTES de Modificar Código
+1. **Consultar entidades relacionadas** en el grafo
+2. **Verificar relaciones** que pueden verse afectadas
+3. **Revisar ADRs** para decisiones arquitectónicas
+4. **Analizar impacto** en la puntuación del proyecto (9/10)
+
+### Obligatorio DESPUÉS de Cambios Significativos
+1. **Actualizar observaciones** de entidades modificadas
+2. **Crear nuevas relaciones** si es necesario
+3. **Documentar decisiones** como ADR si es arquitectónico
+4. **Ejecutar análisis MCP** para validar cambios
+
+### Prohibido
+- ❌ Modificar código sin consultar el grafo de conocimiento
+- ❌ Ignorar relaciones existentes entre entidades
+- ❌ Romper la arquitectura ECS documentada
+- ❌ Disminuir la puntuación del proyecto (9/10)
+
+## 🎯 CHECKLIST MCP OBLIGATORIO
+
+### Pre-Modificación
+- [ ] ✅ Consulté el grafo de conocimiento
+- [ ] ✅ Identifiqué entidades relacionadas
+- [ ] ✅ Verifiqué relaciones que se verán afectadas
+- [ ] ✅ Revisé ADRs relevantes
+- [ ] ✅ Analicé impacto arquitectónico
+
+### Post-Modificación
+- [ ] ✅ Actualicé observaciones en el grafo
+- [ ] ✅ Creé nuevas relaciones si es necesario
+- [ ] ✅ Documenté decisiones arquitectónicas
+- [ ] ✅ Ejecuté análisis MCP de validación
+- [ ] ✅ Mantuve puntuación del proyecto (9/10)
+
+---
+
+**🧠 RECORDATORIO CRÍTICO**: El MCP Knowledge Graph contiene TODO el contexto del proyecto ReSnake. SIEMPRE consultarlo antes de cualquier modificación. El conocimiento está persistido y debe ser la fuente de verdad para entender el impacto de cualquier cambio en la arquitectura ECS y los servicios del proyecto.
+

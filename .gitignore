@@ -8,6 +8,12 @@ yarn-error.log*
 dist/
 build/
 
+# Documentation
+docs/
+
+# MCP Knowledge Graph
+.aim/
+
 # Environment variables
 .env
 .env.local

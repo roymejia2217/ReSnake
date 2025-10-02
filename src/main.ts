@@ -22,6 +22,7 @@ import { MenuService } from '@/services/MenuService';
 import { LeaderboardService } from '@/services/LeaderboardService';
 import { LogoService } from '@/services/LogoService';
 import { SuperFoodService } from '@/services/SuperFoodService';
+import { SpriteService } from '@/services/SpriteService';
 import { generateRandomPosition } from '@/utils/helpers';
 import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG, SUPER_FOOD_CONFIG } from '@/config/constants';
 import type { GameMode, Player } from '@/core/gameTypes';
@@ -47,6 +48,7 @@ class Game {
   private scoreService: ScoreService;
   private logoService: LogoService;
   private superFoodService: SuperFoodService;
+  private spriteService: SpriteService;
   
   // Motor y entidades
   private engine?: GameEngine;
@@ -72,6 +74,7 @@ class Game {
     this.scoreService = new ScoreService();
     this.logoService = new LogoService(this.themeService);
     this.superFoodService = new SuperFoodService();
+    this.spriteService = new SpriteService();
     
     // Configurar callback de expiración de supermanzana
     this.superFoodService.setOnExpired(() => {
@@ -126,9 +129,9 @@ class Game {
     
     // INGRESO DE NOMBRE
     const playerNameForm = document.getElementById('player-name-form') as HTMLFormElement;
-    playerNameForm?.addEventListener('submit', (e) => {
+    playerNameForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      this.handlePlayerNameSubmit();
+      await this.handlePlayerNameSubmit();
     });
     
     document.getElementById('btn-back-from-name')?.addEventListener('click', () => {
@@ -161,8 +164,8 @@ class Game {
     });
     
     // GAME OVER
-    document.getElementById('restart-btn')?.addEventListener('click', () => {
-      this.restart();
+    document.getElementById('restart-btn')?.addEventListener('click', async () => {
+      await this.restart();
     });
     
     document.getElementById('menu-btn')?.addEventListener('click', () => {
@@ -213,7 +216,7 @@ class Game {
   /**
    * Maneja el envío del formulario de nombre
    */
-  private handlePlayerNameSubmit(): void {
+  private async handlePlayerNameSubmit(): Promise<void> {
     const input = document.getElementById('player-name-input') as HTMLInputElement;
     const errorDiv = document.getElementById('name-error');
     
@@ -228,7 +231,7 @@ class Game {
       // Limpia error y comienza el juego
       errorDiv.style.display = 'none';
       input.value = '';
-      this.startNewGame();
+      await this.startNewGame();
     } catch (error) {
       // Muestra error de validación
       errorDiv.textContent = error instanceof Error ? error.message : this.i18n.t('playerName.error');
@@ -344,10 +347,10 @@ class Game {
   /**
    * Inicia un nuevo juego con el modo y jugador seleccionados
    */
-  private startNewGame(): void {
+  private async startNewGame(): Promise<void> {
     if (!this.currentPlayer) return;
     
-    this.setupGame();
+    await this.setupGame();
     this.menuService.navigateTo('game');
     this.engine?.start();
     this.isPaused = false;
@@ -366,7 +369,15 @@ class Game {
   /**
    * Configura el motor y entidades del juego
    */
-  private setupGame(): void {
+  private async setupGame(): Promise<void> {
+    // ✅ NUEVO: Cargar sprites antes de iniciar el juego
+    try {
+      await this.spriteService.loadSprites();
+      console.log('Sprites loaded successfully');
+    } catch (error) {
+      console.warn('Failed to load sprites, using Canvas fallback:', error);
+    }
+    
     // Crea nuevas entidades
     const initialPosition = new Position(
       Math.floor(GAME_CONFIG.BOARD_SIZE / 2),
@@ -399,6 +410,9 @@ class Game {
     
     // Configurar easter egg romántico en el sistema de renderizado
     renderSystem.setRomanticEasterEgg(this.userService.getRomanticEasterEgg());
+    
+    // ✅ NUEVO: Configurar servicio de sprites en el sistema de renderizado
+    renderSystem.setSpriteService(this.spriteService);
     
     // Configura el modo de juego
     const modeConfig = this.gameModeService.getCurrentConfig();
@@ -776,9 +790,9 @@ class Game {
   /**
    * Reinicia el juego con el mismo jugador y modo
    */
-  private restart(): void {
+  private async restart(): Promise<void> {
     this.menuService.navigateTo('game', false);
-    this.startNewGame();
+    await this.startNewGame();
   }
   
   /**

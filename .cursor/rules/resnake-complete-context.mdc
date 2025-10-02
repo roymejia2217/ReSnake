@@ -1,0 +1,274 @@
+---
+description: Regla completa de contexto para el proyecto ReSnake - Juego Snake con arquitectura ECS, TypeScript y análisis MCP
+globs: **/*
+alwaysApply: true
+---
+
+# Regla Completa de Contexto - Proyecto ReSnake
+
+## 🎯 INFORMACIÓN CRÍTICA DEL PROYECTO
+
+### Identidad del Proyecto
+- **Nombre**: ReSnake
+- **Tipo**: Juego Snake moderno con arquitectura ECS
+- **Versión**: 1.0.0
+- **Licencia**: MIT
+- **URL Demo**: https://roymejia2217.github.io/ReSnake/
+- **Repositorio**: C:\Users\Roy\Downloads\ReSnake
+
+### Stack Tecnológico Principal
+- **Lenguaje**: TypeScript 5.3+ (configuración estricta)
+- **Build Tool**: Vite 5.0+ con HMR
+- **Renderizado**: Canvas API nativo
+- **Backend**: Supabase (leaderboard global)
+- **Deploy**: GitHub Pages con CI/CD automático
+- **Tamaño Build**: ~8KB (gzipped)
+
+## 🏗️ ARQUITECTURA FUNDAMENTAL
+
+### Patrón ECS (Entity-Component-System) - CRÍTICO
+**ANTES DE MODIFICAR CUALQUIER CÓDIGO, ENTENDER:**
+
+#### Entidades (src/entities/)
+- **Snake**: Entidad principal del juego
+  - Componentes: Position, Velocity, Renderable, Collidable
+  - Métodos clave: grow(), move(), checkSelfCollision()
+  - Crecimiento suave con animaciones easing
+
+- **Food**: Entidad de comida
+  - Componentes: Position, Renderable, Collidable
+  - Animaciones de pulsación y efectos visuales
+
+#### Componentes (src/components/)
+- **Position**: Coordenadas X,Y con método equals()
+- **Velocity**: Dirección y velocidad de movimiento
+- **Renderable**: Propiedades de renderizado (color, estilo)
+- **Collidable**: Marcado de entidades que pueden colisionar
+
+#### Sistemas (src/systems/)
+- **InputSystem**: Manejo de entrada (teclado, táctil, gestos)
+- **MovementSystem**: Procesamiento de movimiento con wrap-around
+- **CollisionSystem**: Detección de colisiones
+- **RenderSystem**: Renderizado en Canvas con efectos visuales
+
+#### Motor (src/core/)
+- **GameEngine**: Game loop con requestAnimationFrame
+- **Estados**: IDLE, PLAYING, PAUSED, GAME_OVER
+- **Métodos**: start(), pause(), resume(), stop()
+
+## 📋 PRINCIPIOS DE DISEÑO OBLIGATORIOS
+
+### SOLID Principles - SIEMPRE APLICAR
+- **Single Responsibility**: Cada clase tiene una única responsabilidad
+- **Open/Closed**: Abierto a extensión, cerrado a modificación
+- **Liskov Substitution**: Entidades intercambiables
+- **Interface Segregation**: Componentes específicos
+- **Dependency Inversion**: Dependencia de abstracciones
+
+### DRY y KISS
+- **DRY**: No repetir código, usar funciones reutilizables
+- **KISS**: Soluciones simples y directas
+
+### Composition over Inheritance
+- Usar composición de componentes en lugar de herencia profunda
+
+## 🔧 SERVICIOS DEL PROYECTO
+
+### Servicios Principales (src/services/)
+- **ThemeService**: Gestión de temas claro/oscuro
+- **ScoreService**: Puntuación y récords
+- **LeaderboardService**: Integración con Supabase
+- **SoundService**: Efectos de sonido (ap.mp3, end.mp3)
+- **I18nService**: Internacionalización (es, en, it)
+- **RomanticEasterEggService**: Easter egg especial (puntuación 69)
+- **UserService**: Gestión de jugadores
+- **GameModeService**: Configuración de modos de juego
+- **MenuService**: Navegación entre pantallas
+- **LogoService**: Gestión del logo dinámico
+
+## 🎮 FUNCIONALIDADES ESPECÍFICAS
+
+### Modos de Juego
+- **Clásico**: Con colisiones de bordes
+- **Sin bordes**: Wrap-around
+- **Con obstáculos**: Modo futuro
+
+### Controles
+- **Desktop**: Flechas del teclado, Espacio/P para pausa
+- **Móvil**: Botones táctiles + gestos swipe
+- **Pausa**: Botón en pantalla o teclas
+
+### Características Especiales
+- **Easter Egg Romántico**: Activación en puntuación 69
+- **Lluvia de corazones**: Efecto visual especial
+- **Leaderboard global**: Con Supabase
+- **Responsividad total**: Adaptación a cualquier pantalla
+
+## 📁 ESTRUCTURA DE ARCHIVOS CRÍTICA
+
+```
+src/
+├── components/     # Componentes ECS (Position, Velocity, Renderable, Collidable)
+├── core/          # Motor del juego (Engine.ts, types.ts, gameTypes.ts)
+├── entities/      # Entidades del juego (Entity.ts, Snake.ts, Food.ts)
+├── systems/       # Sistemas ECS (Input, Movement, Collision, Render)
+├── services/      # Servicios auxiliares (11 servicios)
+├── config/        # Configuración (constants.ts, supabase.ts)
+├── utils/         # Utilidades (helpers.ts, AnimationHelper.ts)
+└── styles/        # Estilos CSS (main.css)
+```
+
+## 🧠 MCP KNOWLEDGE GRAPH - CONTEXTO PERSISTENTE
+
+### Grafo de Conocimiento Activo
+- **29 entidades** en el grafo de conocimiento
+- **44 relaciones** entre componentes
+- **Servidores MCP**: memory, mind-map, adr-analysis
+- **ADRs**: 5 Architectural Decision Records documentados
+
+### Consultas Disponibles
+```typescript
+// Consultar entidades del proyecto
+mcp_memory_aim_search_nodes({query: "Snake"})
+mcp_memory_aim_open_nodes({names: ["GameEngine", "ECS_Architecture"]})
+```
+
+## 📊 ANÁLISIS ARQUITECTÓNICO
+
+### Puntuación del Proyecto: 9/10
+- **Diseño**: Excelente (ECS bien implementado)
+- **Tecnologías**: Modernas y apropiadas
+- **Mantenibilidad**: Muy buena
+- **Rendimiento**: Excelente
+- **Seguridad**: Buena
+- **Escalabilidad**: Muy buena
+
+### Métricas de Rendimiento
+- **Build Size**: HTML (1.12KB) + CSS (1.60KB) + JS (5.32KB) = ~8KB gzipped
+- **Tiempo de carga**: Instantáneo
+- **Navegadores soportados**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+
+## ⚠️ REGLAS DE MODIFICACIÓN DE CÓDIGO
+
+### ANTES DE MODIFICAR CUALQUIER ARCHIVO:
+
+1. **LEER COMPLETAMENTE** el archivo y entender su propósito en la arquitectura ECS
+2. **CONSULTAR** el grafo de conocimiento para entender relaciones
+3. **VERIFICAR** que la modificación respeta los principios SOLID
+4. **MANTENER** la separación entre componentes, sistemas y entidades
+5. **PRESERVAR** la funcionalidad existente
+6. **DOCUMENTAR** cambios significativos
+
+### PATRONES PROHIBIDOS:
+- ❌ Modificar la estructura ECS sin justificación
+- ❌ Hardcodear valores en lugar de usar constants.ts
+- ❌ Crear dependencias circulares entre servicios
+- ❌ Romper la separación de responsabilidades
+- ❌ Ignorar el tipado estricto de TypeScript
+
+### PATRONES OBLIGATORIOS:
+- ✅ Usar TypeScript con tipado estricto
+- ✅ Seguir la arquitectura ECS establecida
+- ✅ Mantener servicios singleton reutilizables
+- ✅ Usar configuración centralizada en constants.ts
+- ✅ Implementar manejo de errores apropiado
+- ✅ Preservar responsividad móvil
+
+## 🎨 CONVENCIONES DE CÓDIGO
+
+### Naming Conventions
+- **Clases**: PascalCase (GameEngine, Snake)
+- **Métodos**: camelCase (startNewGame, handleFoodEaten)
+- **Constantes**: UPPER_SNAKE_CASE (GAME_CONFIG, DIRECTIONS)
+- **Archivos**: PascalCase para clases (Snake.ts, Food.ts)
+
+### Estructura de Archivos
+- **Imports**: Siempre usar paths absolutos con @/
+- **Exports**: Named exports preferidos
+- **Comentarios**: JSDoc para clases y métodos públicos
+
+## 🔍 DEBUGGING Y TESTING
+
+### Comandos de Desarrollo
+```bash
+npm run dev      # Servidor de desarrollo con HMR
+npm run build    # Build de producción
+npm run preview  # Preview del build
+```
+
+### Análisis MCP
+```bash
+# Health check del servidor ADR
+npx mcp-adr-analysis-server --test
+
+# Análisis completo del proyecto
+PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server
+```
+
+## 📚 DOCUMENTACIÓN CRÍTICA
+
+### Archivos de Documentación
+- `docs/adrs/` - Architectural Decision Records
+- `docs/ARCHITECTURE_ANALYSIS.md` - Análisis completo
+- `docs/MCP_SETUP.md` - Configuración MCP
+- `README.md` - Documentación principal
+
+### ADRs Documentados
+1. **ADR-001**: Arquitectura ECS
+2. **ADR-002**: TypeScript estricto
+3. **ADR-003**: Vite como build tool
+4. **ADR-004**: Canvas API para renderizado
+5. **ADR-005**: Supabase para leaderboard
+
+## 🚀 FLUJO DE DESARROLLO
+
+### Para Nuevas Funcionalidades:
+1. **Analizar** si requiere nuevo componente, sistema o entidad
+2. **Consultar** el grafo de conocimiento para entender impacto
+3. **Seguir** el patrón ECS establecido
+4. **Mantener** compatibilidad con servicios existentes
+5. **Documentar** la decisión en ADR si es significativa
+
+### Para Correcciones:
+1. **Identificar** el sistema/componente responsable
+2. **Preservar** la arquitectura ECS
+3. **Verificar** que no afecta otros sistemas
+4. **Mantener** la responsividad móvil
+
+## 💾 PERSISTENCIA Y CONFIGURACIÓN
+
+### Configuración MCP
+```json
+{
+  "mcpServers": {
+    "memory": { "command": "npx", "args": ["-y", "mcp-knowledge-graph"] },
+    "mind-map": { "command": "npx", "args": ["-y", "mind-map-mcp"] },
+    "adr-analysis": { "command": "npx", "args": ["-y", "mcp-adr-analysis-server"] }
+  }
+}
+```
+
+### Variables de Entorno
+- `PROJECT_PATH`: C:\Users\Roy\Downloads\ReSnake
+- `ADR_DIRECTORY`: docs/adrs
+- `LOG_LEVEL`: INFO
+- `CACHE_ENABLED`: true
+
+## 🎯 OBJETIVOS DEL PROYECTO
+
+### Metas Principales
+- Mantener arquitectura ECS sólida
+- Preservar rendimiento excelente (~8KB)
+- Mantener compatibilidad móvil completa
+- Expandir funcionalidades siguiendo patrones establecidos
+
+### Futuras Mejoras Planificadas
+- Tests unitarios para sistemas críticos
+- Progressive Web App (PWA)
+- Modo multijugador
+- Sistema de mods/plugins
+
+---
+
+**⚠️ RECORDATORIO CRÍTICO**: Este proyecto tiene una arquitectura ECS bien definida y un grafo de conocimiento activo. SIEMPRE consultar el contexto completo antes de hacer modificaciones. El conocimiento está persistido en el sistema MCP y debe ser consultado para entender el impacto de cualquier cambio.
+
