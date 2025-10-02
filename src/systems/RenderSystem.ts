@@ -10,8 +10,9 @@
 import type { System } from '@/core/types';
 import type { Snake } from '@/entities/Snake';
 import type { Food } from '@/entities/Food';
+import type { SuperFood } from '@/entities/SuperFood';
 import { Renderable } from '@/components/Renderable';
-import { GAME_CONFIG } from '@/config/constants';
+import { GAME_CONFIG, SUPER_FOOD_CONFIG } from '@/config/constants';
 import { lerp } from '@/utils/AnimationHelper';
 import type { Velocity } from '@/components/Velocity';
 import type { RomanticEasterEggService } from '@/services/RomanticEasterEggService';
@@ -38,9 +39,13 @@ export class RenderSystem implements System {
   // Colores dinámicos del tema
   private snakeColor: string = GAME_CONFIG.COLORS.SNAKE;
   private foodColor: string = GAME_CONFIG.COLORS.FOOD;
+  private superFoodColor: string = GAME_CONFIG.COLORS.SUPER_FOOD;
   
   // Servicio de easter egg romántico
   private romanticEasterEgg?: RomanticEasterEggService;
+  
+  // Control de barra de progreso de supermanzana
+  private superFoodExpireAt: number | null = null;
   
   // Sistema de lluvia de corazones para puntaje especial
   private heartRain: HeartParticle[] = [];
@@ -50,7 +55,8 @@ export class RenderSystem implements System {
   constructor(
     private canvas: HTMLCanvasElement,
     private snake: Snake,
-    private food: Food
+    private food: Food,
+    private superFood?: SuperFood
   ) {
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Canvas context not available');
@@ -159,6 +165,8 @@ export class RenderSystem implements System {
     this.clearCanvas();
     this.renderSnake();
     this.renderFood();
+    this.renderSuperFood();
+    this.updateSuperFoodProgress();
     this.updateHeartRain();
     this.renderHeartRain();
     this.updateRomanticMessageDOM();
@@ -171,11 +179,13 @@ export class RenderSystem implements System {
     const computedStyle = getComputedStyle(document.documentElement);
     const newSnakeColor = computedStyle.getPropertyValue('--color-snake').trim() || GAME_CONFIG.COLORS.SNAKE;
     const newFoodColor = computedStyle.getPropertyValue('--color-food').trim() || GAME_CONFIG.COLORS.FOOD;
+    const newSuperFoodColor = computedStyle.getPropertyValue('--color-super-food').trim() || GAME_CONFIG.COLORS.SUPER_FOOD;
     
     // Si cambió el color, invalida el cache de gradientes y actualiza el canvas
-    if (newSnakeColor !== this.snakeColor || newFoodColor !== this.foodColor) {
+    if (newSnakeColor !== this.snakeColor || newFoodColor !== this.foodColor || newSuperFoodColor !== this.superFoodColor) {
       this.snakeColor = newSnakeColor;
       this.foodColor = newFoodColor;
+      this.superFoodColor = newSuperFoodColor;
       this.invalidateGradientCache();
       this.updateCanvasBackground(); // Actualiza el fondo del canvas
     }
@@ -480,6 +490,161 @@ export class RenderSystem implements System {
       );
       this.ctx.fill();
     }
+  }
+  
+  /**
+   * Dibuja la supermanzana con animaciones
+   */
+  private renderSuperFood(): void {
+    if (!this.superFood) return;
+    
+    const renderable = this.superFood.getComponent<Renderable>('Renderable');
+    if (!renderable) return;
+    
+    const coveredCells = this.superFood.getCoveredCells();
+    
+    // Animación de spawn (aparición)
+    const spawnProgress = this.superFood.getSpawnProgress(this.currentTime);
+    const spawnScale = spawnProgress > 0 && spawnProgress < 1 
+      ? spawnProgress 
+      : 1;
+    
+    // Animación de comer (desaparición)
+    const eatProgress = this.superFood.getEatProgress(this.currentTime);
+    const eatScale = eatProgress > 0 && eatProgress < 1
+      ? 1 - eatProgress
+      : 1;
+    
+    const finalScale = spawnScale * eatScale;
+    
+    if (finalScale <= 0) return;
+    
+    // Renderizar cada celda de la supermanzana
+    coveredCells.forEach(cell => {
+      this.renderSuperFoodCell(cell, renderable.color, finalScale);
+    });
+  }
+  
+  /**
+   * Dibuja una celda individual de la supermanzana
+   */
+  private renderSuperFoodCell(
+    position: {x: number, y: number}, 
+    color: string, 
+    scale: number
+  ): void {
+    const centerX = position.x * this.cellSize + this.cellSize / 2;
+    const centerY = position.y * this.cellSize + this.cellSize / 2;
+    const baseRadius = this.cellSize / 2 - 1;
+    const radius = baseRadius * scale;
+    
+    if (radius <= 0) return;
+    
+    // Animación de pulsación más intensa para supermanzana
+    const pulseScale = 1 + Math.sin(this.currentTime / 300) * 0.15;
+    const pulseRadius = radius * pulseScale;
+    
+    // Sombra más intensa
+    this.ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+    this.ctx.shadowBlur = this.cellSize * 0.4;
+    this.ctx.shadowOffsetX = 0;
+    this.ctx.shadowOffsetY = 0;
+    
+    // Círculo principal con gradiente
+    const gradient = this.getSuperFoodGradient(centerX, centerY, pulseRadius);
+    this.ctx.fillStyle = gradient;
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
+    this.ctx.fill();
+    
+    // Reset sombra
+    this.ctx.shadowColor = 'transparent';
+    this.ctx.shadowBlur = 0;
+    
+    // Brillo más intenso
+    if (this.cellSize > 12) {
+      const highlightGradient = this.ctx.createRadialGradient(
+        centerX - pulseRadius * 0.3,
+        centerY - pulseRadius * 0.3,
+        0,
+        centerX - pulseRadius * 0.3,
+        centerY - pulseRadius * 0.3,
+        pulseRadius * 0.8
+      );
+      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      
+      this.ctx.fillStyle = highlightGradient;
+      this.ctx.beginPath();
+      this.ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
+    
+    // Borde dorado
+    this.ctx.strokeStyle = this.lightenColor(color, 0.3);
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
+    this.ctx.stroke();
+  }
+  
+  /**
+   * Obtiene o crea el gradiente para la supermanzana
+   */
+  private getSuperFoodGradient(centerX: number, centerY: number, radius: number): CanvasGradient {
+    const gradient = this.ctx.createRadialGradient(
+      centerX - radius * 0.3,
+      centerY - radius * 0.3,
+      0,
+      centerX,
+      centerY,
+      radius
+    );
+    gradient.addColorStop(0, this.lightenColor(this.superFoodColor, 0.4));
+    gradient.addColorStop(0.7, this.superFoodColor);
+    gradient.addColorStop(1, this.darkenColor(this.superFoodColor, 0.1));
+    return gradient;
+  }
+  
+  /**
+   * Actualiza la barra de progreso de la supermanzana
+   */
+  private updateSuperFoodProgress(): void {
+    const progressElement = document.getElementById('superfood-progress');
+    const progressFill = progressElement?.querySelector('.progress-fill') as HTMLElement;
+    
+    if (!progressElement || !progressFill) return;
+    
+    if (!this.superFoodExpireAt) {
+      progressElement.style.display = 'none';
+      return;
+    }
+    
+    const remaining = Math.max(0, this.superFoodExpireAt - this.currentTime);
+    const percentage = (remaining / SUPER_FOOD_CONFIG.LIFETIME_MS) * 100;
+    
+    if (percentage <= 0) {
+      progressElement.style.display = 'none';
+      this.superFoodExpireAt = null;
+      return;
+    }
+    
+    progressElement.style.display = 'block';
+    progressFill.style.width = `${percentage}%`;
+  }
+  
+  /**
+   * Establece el tiempo de expiración de la supermanzana
+   */
+  setSuperFoodExpireAt(expireAt: number | null): void {
+    this.superFoodExpireAt = expireAt;
+  }
+  
+  /**
+   * Actualiza la referencia a la supermanzana
+   */
+  setSuperFood(superFood?: SuperFood): void {
+    this.superFood = superFood;
   }
   
   /**

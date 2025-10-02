@@ -21,6 +21,15 @@ export class ScoreService {
   }
   
   /**
+   * Añade puntos a la puntuación
+   */
+  add(points: number): void {
+    this.score += Math.max(0, Math.floor(points));
+    this.onScoreChange?.(this.score);
+    this.onScoreIncrement?.();
+  }
+  
+  /**
    * Reinicia la puntuación
    */
   reset(): void {

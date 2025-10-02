@@ -399,6 +399,47 @@ body {
   box-shadow: var(--shadow-control-active);
 }
 
+/* Barra de progreso de supermanzana */
+#superfood-progress {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ffed4e);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+/* Responsividad para barra de progreso */
+@media (max-width: 768px) {
+  #superfood-progress {
+    width: 150px;
+    height: 6px;
+    top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  #superfood-progress {
+    width: 120px;
+    height: 5px;
+    top: 6px;
+  }
+}
+
 /* Posiciona el botón UP en el centro de la primera fila */
 .controls-grid > .control-btn {
   grid-column: 1;

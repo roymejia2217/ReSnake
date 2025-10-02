@@ -21,9 +21,11 @@ import { GameModeService } from '@/services/GameModeService';
 import { MenuService } from '@/services/MenuService';
 import { LeaderboardService } from '@/services/LeaderboardService';
 import { LogoService } from '@/services/LogoService';
+import { SuperFoodService } from '@/services/SuperFoodService';
 import { generateRandomPosition } from '@/utils/helpers';
-import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG } from '@/config/constants';
+import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG, SUPER_FOOD_CONFIG } from '@/config/constants';
 import type { GameMode, Player } from '@/core/gameTypes';
+import type { System } from '@/core/types';
 import './styles/main.css';
 
 // Inicializa servicios globales INMEDIATAMENTE
@@ -44,6 +46,7 @@ class Game {
   private leaderboardService: LeaderboardService;
   private scoreService: ScoreService;
   private logoService: LogoService;
+  private superFoodService: SuperFoodService;
   
   // Motor y entidades
   private engine?: GameEngine;
@@ -68,6 +71,12 @@ class Game {
     this.leaderboardService = new LeaderboardService();
     this.scoreService = new ScoreService();
     this.logoService = new LogoService(this.themeService);
+    this.superFoodService = new SuperFoodService();
+    
+    // Configurar callback de expiración de supermanzana
+    this.superFoodService.setOnExpired(() => {
+      this.updateSuperFoodSystems();
+    });
     
     this.setupMenus();
     this.setupOptionsHandlers();
@@ -368,6 +377,7 @@ class Game {
     this.food = new Food(generateRandomPosition(this.snake.body));
     this.food.startSpawnAnimation(performance.now());
     this.scoreService.reset();
+    this.superFoodService.reset();
     
     // Limpia el sistema de input anterior
     if (this.inputSystem) {
@@ -397,6 +407,7 @@ class Game {
     
     // Configura callbacks de colisiones
     collisionSystem.setOnFoodEaten(() => this.handleFoodEaten());
+    collisionSystem.setOnSuperFoodEaten(() => this.handleSuperFoodEaten());
     collisionSystem.setOnGameOver(() => this.handleGameOver());
     
     // Añade sistemas al motor
@@ -460,11 +471,20 @@ class Game {
   }
   
   /**
-   * Maneja cuando la serpiente come
+   * Maneja cuando la serpiente come comida normal
    */
   private handleFoodEaten(): void {
     this.scoreService.increment();
     this.soundService.play('eat');
+    
+    // Notificar al servicio de supermanzana
+    this.superFoodService.onNormalEaten();
+    
+    // Si hay supermanzana activa, desaparece al comer comida normal
+    if (this.superFoodService.isActive()) {
+      this.superFoodService.despawn();
+      this.updateSuperFoodSystems();
+    }
     
     // Mostrar mensaje especial romántico al conseguir puntos
     const romanticEasterEgg = this.userService.getRomanticEasterEgg();
@@ -475,6 +495,71 @@ class Game {
     if (this.snake && this.food) {
       this.food.relocate(generateRandomPosition(this.snake.body), performance.now());
     }
+    
+    // Verificar si debe aparecer supermanzana
+    this.checkSuperFoodSpawn();
+  }
+  
+  /**
+   * Maneja cuando la serpiente come supermanzana
+   */
+  private handleSuperFoodEaten(): void {
+    this.scoreService.add(SUPER_FOOD_CONFIG.POINTS);
+    this.soundService.play('eat');
+    
+    // Desaparecer supermanzana
+    this.superFoodService.despawn();
+    this.updateSuperFoodSystems();
+    
+    // Mostrar mensaje especial romántico al conseguir puntos
+    const romanticEasterEgg = this.userService.getRomanticEasterEgg();
+    if (romanticEasterEgg.isEasterEggActive()) {
+      romanticEasterEgg.showSpecialMessage('score');
+    }
+  }
+  
+  /**
+   * Verifica si debe aparecer la supermanzana
+   */
+  private checkSuperFoodSpawn(): void {
+    if (this.superFoodService.shouldSpawn(this.currentMode) && this.snake && this.food) {
+      this.superFoodService.spawn(
+        this.snake.body,
+        this.food.position,
+        performance.now()
+      );
+      
+      this.updateSuperFoodSystems();
+      
+      // Configurar expiración en el sistema de renderizado
+      const expireAt = this.superFoodService.getExpireAt();
+      if (expireAt) {
+        // Obtener referencia al renderSystem del motor
+        const systems = this.engine?.getSystems();
+        const renderSystem = systems?.find((s: System) => s instanceof RenderSystem) as RenderSystem;
+        renderSystem?.setSuperFoodExpireAt(expireAt);
+      }
+    }
+  }
+  
+  /**
+   * Actualiza las referencias de supermanzana en los sistemas
+   */
+  private updateSuperFoodSystems(): void {
+    const superFood = this.superFoodService.getSuperFood();
+    
+    // Actualizar sistemas del motor
+    const systems = this.engine?.getSystems();
+    systems?.forEach((system: System) => {
+      if (system instanceof CollisionSystem) {
+        system.setSuperFood(superFood || undefined);
+      } else if (system instanceof RenderSystem) {
+        system.setSuperFood(superFood || undefined);
+        if (!superFood) {
+          system.setSuperFoodExpireAt(null);
+        }
+      }
+    });
   }
   
   /**

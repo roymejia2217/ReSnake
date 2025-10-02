@@ -91,4 +91,11 @@ export class GameEngine {
   getState(): GameState {
     return this.state;
   }
+  
+  /**
+   * Obtiene todos los sistemas del motor
+   */
+  getSystems(): System[] {
+    return [...this.systems];
+  }
 }

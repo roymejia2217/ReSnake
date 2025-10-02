@@ -7,14 +7,17 @@
 import type { System } from '@/core/types';
 import type { Snake } from '@/entities/Snake';
 import type { Food } from '@/entities/Food';
+import type { SuperFood } from '@/entities/SuperFood';
 
 export class CollisionSystem implements System {
   private onFoodEaten?: () => void;
+  private onSuperFoodEaten?: () => void;
   private onGameOver?: () => void;
   
   constructor(
     private snake: Snake,
-    private food: Food
+    private food: Food,
+    private superFood?: SuperFood
   ) {}
   
   /**
@@ -31,6 +34,7 @@ export class CollisionSystem implements System {
   private checkFoodCollision(): void {
     const head = this.snake.head;
     
+    // Colisión con comida normal
     if (head.equals(this.food.position) && !this.food.beingEaten) {
       this.food.startEatAnimation(performance.now());
       this.snake.grow();
@@ -39,6 +43,20 @@ export class CollisionSystem implements System {
       setTimeout(() => {
         this.onFoodEaten?.();
       }, 150);
+    }
+    
+    // Colisión con supermanzana (si está presente)
+    if (this.superFood && !this.superFood.beingEaten) {
+      const hit = this.superFood.getCoveredCells().some(cell => head.equals(cell));
+      if (hit) {
+        this.superFood.startEatAnimation(performance.now());
+        this.snake.grow();
+        
+        // Llama al callback después de un breve delay para la animación
+        setTimeout(() => {
+          this.onSuperFoodEaten?.();
+        }, 150);
+      }
     }
   }
   
@@ -59,9 +77,23 @@ export class CollisionSystem implements System {
   }
   
   /**
+   * Callback cuando se come la supermanzana
+   */
+  setOnSuperFoodEaten(callback: () => void): void {
+    this.onSuperFoodEaten = callback;
+  }
+  
+  /**
    * Callback cuando termina el juego
    */
   setOnGameOver(callback: () => void): void {
     this.onGameOver = callback;
+  }
+  
+  /**
+   * Actualiza la referencia a la supermanzana
+   */
+  setSuperFood(superFood?: SuperFood): void {
+    this.superFood = superFood;
   }
 }

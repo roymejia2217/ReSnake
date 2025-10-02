@@ -18,8 +18,16 @@ export const GAME_CONFIG = {
     BACKGROUND: '#222222',
     SNAKE: '#99cc00',
     FOOD: '#ff5a5f',
+    SUPER_FOOD: '#ffd700',
     TEXT: '#ffffff'
   }
+} as const;
+
+export const SUPER_FOOD_CONFIG = {
+  SIZE: 2,
+  POINTS: 5,
+  LIFETIME_MS: 3000,
+  SPAWN_EVERY_NORMALS: 5
 } as const;
 
 export const DIRECTIONS = {
