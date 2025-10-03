@@ -215,22 +215,29 @@ export class RenderSystem implements System {
     const velocity = this.snake.getComponent<Velocity>('Velocity');
     const rotationAngle = this.getRotationAngle(velocity, body);
     
-    // ✅ RENDERIZADO OPTIMIZADO: Usar sprites con rotación automática
+    // ✅ RENDERIZADO OPTIMIZADO: Usar sprites con rotación automática y detección de curvas
     body.forEach((segment, index) => {
-      const spriteType = this.spriteService!.getSpriteTypeForPosition(index, body.length);
+      const spriteType = this.spriteService!.getSpriteTypeForPosition(index, body.length, body);
       const sprite = this.spriteService!.getSprite(spriteType);
       
       if (sprite) {
         const x = segment.x * this.cellSize;
         const y = segment.y * this.cellSize;
         
+        // ✅ ROTACIÓN SIMPLE: Solo para sprites normales, curvas usan sprites específicos
+        let angle = rotationAngle[index];
+        // Los sprites de curva (bodyleftup, bodyrightup, etc.) no necesitan rotación
+        if (spriteType.includes('body') && spriteType !== 'body') {
+          angle = 0; // Sin rotación para sprites específicos de curva
+        }
+        
         // Animación de crecimiento solo para la cola
         if (spriteType === 'tail' && this.snake.hasJustGrown) {
           const scale = lerp(0.5, 1, this.snake.getGrowthProgress(this.currentTime));
-          this.drawRotatedScaledSprite(sprite, x, y, scale, rotationAngle[index]);
+          this.drawRotatedScaledSprite(sprite, x, y, scale, angle);
         } else {
           // Renderizado normal con rotación
-          this.drawRotatedSprite(sprite, x, y, rotationAngle[index]);
+          this.drawRotatedSprite(sprite, x, y, angle);
         }
       } else {
         // Fallback: usar renderizado Canvas original si no hay sprites
@@ -239,6 +246,7 @@ export class RenderSystem implements System {
     });
   }
   
+
   /**
    * ✅ NUEVO: Calcula ángulos de rotación para cada segmento de la serpiente
    */
