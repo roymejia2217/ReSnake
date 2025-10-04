@@ -4,87 +4,198 @@
  * Principio: Single Responsibility (SOLID)
  */
 
+import { SKIN_CONFIG } from '@/config/constants';
+
 export type SpriteType = 'head' | 'body' | 'bodyleftup' | 'bodyrightup' | 'bodyrightdown' | 'bodyupright' | 'tail';
 
 export class SpriteService {
-  private readonly sprites: Map<SpriteType, HTMLImageElement>;
+  private readonly sprites: Map<string, Map<SpriteType, HTMLImageElement>>;
   private loadedCount = 0;
   private readonly totalSprites = 7;
   private readonly basePath: string;
   private loadingPromise: Promise<void> | null = null;
+  private currentSkin: string = SKIN_CONFIG.DEFAULT_SKIN;
   
   constructor() {
     this.sprites = new Map();
     this.basePath = import.meta.env.BASE_URL;
+    this.loadCurrentSkin();
   }
   
   /**
-   * Carga todos los sprites de forma asíncrona
+   * Establece la skin activa y recarga sprites si es necesario
+   */
+  setSkin(skinId: string): Promise<void> {
+    if (skinId === this.currentSkin) {
+      return Promise.resolve();
+    }
+
+    this.currentSkin = skinId;
+    this.saveCurrentSkin();
+    
+    // Si no tenemos esta skin cargada, la cargamos
+    if (!this.sprites.has(skinId)) {
+      return this.loadSpritesForSkin(skinId);
+    }
+    
+    return Promise.resolve();
+  }
+
+  /**
+   * Obtiene la skin actual
+   */
+  getCurrentSkin(): string {
+    return this.currentSkin;
+  }
+
+  /**
+   * Carga todos los sprites de la skin actual de forma asíncrona
    * Retorna una promesa que se resuelve cuando todos están cargados
    */
   async loadSprites(): Promise<void> {
-    // Evitar cargas múltiples simultáneas
-    if (this.loadingPromise) {
+    return this.loadSpritesForSkin(this.currentSkin);
+  }
+
+  /**
+   * Carga sprites para una skin específica
+   */
+  private async loadSpritesForSkin(skinId: string): Promise<void> {
+    // Evitar cargas múltiples simultáneas para la misma skin
+    const cacheKey = `loading-${skinId}`;
+    if (this.loadingPromise && this.sprites.has(cacheKey)) {
       return this.loadingPromise;
     }
     
-    this.loadingPromise = this.performSpriteLoading();
+    this.loadingPromise = this.performSpriteLoading(skinId);
     return this.loadingPromise;
   }
   
   /**
-   * Realiza la carga de sprites
+   * Realiza la carga de sprites para una skin específica
    */
-  private async performSpriteLoading(): Promise<void> {
+  private async performSpriteLoading(skinId: string): Promise<void> {
     const spriteTypes: SpriteType[] = ['head', 'body', 'bodyleftup', 'bodyrightup', 'bodyrightdown', 'bodyupright', 'tail'];
     
+    // Inicializar mapa para esta skin si no existe
+    if (!this.sprites.has(skinId)) {
+      this.sprites.set(skinId, new Map());
+    }
+    
     const loadPromises = spriteTypes.map(type => 
-      this.loadSprite(type, `${this.basePath}sprites/${type}.png`)
+      this.loadSprite(skinId, type, `${this.basePath}sprites/${skinId}/${type}.png`)
     );
     
     await Promise.all(loadPromises);
   }
   
   /**
-   * Carga un sprite individual
+   * Carga un sprite individual para una skin específica
    */
-  private loadSprite(type: SpriteType, src: string): Promise<void> {
+  private loadSprite(skinId: string, type: SpriteType, src: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       
       img.onload = () => {
-        this.sprites.set(type, img);
+        const skinSprites = this.sprites.get(skinId)!;
+        skinSprites.set(type, img);
         this.loadedCount++;
         resolve();
       };
       
       img.onerror = () => {
-        reject(new Error(`Failed to load sprite: ${src}`));
+        // Fallback a skin default si falla la carga
+        if (skinId !== SKIN_CONFIG.DEFAULT_SKIN) {
+          console.warn(`Failed to load sprite ${src}, falling back to default skin`);
+          this.loadSpriteFallback(skinId, type);
+          resolve();
+        } else {
+          reject(new Error(`Failed to load sprite: ${src}`));
+        }
       };
       
       img.src = src;
     });
   }
+
+  /**
+   * Carga fallback desde skin default
+   */
+  private async loadSpriteFallback(skinId: string, type: SpriteType): Promise<void> {
+    if (skinId === SKIN_CONFIG.DEFAULT_SKIN) {
+      return;
+    }
+
+    try {
+      const defaultSrc = `${this.basePath}sprites/${SKIN_CONFIG.DEFAULT_SKIN}/${type}.png`;
+      const img = new Image();
+      
+      img.onload = () => {
+        const skinSprites = this.sprites.get(skinId)!;
+        skinSprites.set(type, img);
+      };
+      
+      img.src = defaultSrc;
+    } catch (error) {
+      console.error(`Failed to load fallback sprite for ${type}:`, error);
+    }
+  }
   
   /**
-   * Obtiene un sprite por su tipo
+   * Obtiene un sprite por su tipo de la skin actual
    */
   getSprite(type: SpriteType): HTMLImageElement | undefined {
-    return this.sprites.get(type);
+    const skinSprites = this.sprites.get(this.currentSkin);
+    return skinSprites?.get(type);
+  }
+
+  /**
+   * Obtiene un sprite específico de una skin específica
+   */
+  getSpriteForSkin(skinId: string, type: SpriteType): HTMLImageElement | undefined {
+    const skinSprites = this.sprites.get(skinId);
+    return skinSprites?.get(type);
   }
   
   /**
-   * Verifica si todos los sprites están cargados
+   * Verifica si todos los sprites están cargados para la skin actual
    */
   areAllSpritesLoaded(): boolean {
-    return this.loadedCount === this.totalSprites;
+    const skinSprites = this.sprites.get(this.currentSkin);
+    return skinSprites ? skinSprites.size === this.totalSprites : false;
   }
   
   /**
-   * Obtiene el progreso de carga (0-1)
+   * Obtiene el progreso de carga (0-1) para la skin actual
    */
   getLoadingProgress(): number {
-    return this.loadedCount / this.totalSprites;
+    const skinSprites = this.sprites.get(this.currentSkin);
+    return skinSprites ? skinSprites.size / this.totalSprites : 0;
+  }
+
+  /**
+   * Carga la skin actual desde localStorage
+   */
+  private loadCurrentSkin(): void {
+    try {
+      const saved = localStorage.getItem('snake-current-skin');
+      if (saved) {
+        this.currentSkin = saved;
+      }
+    } catch (error) {
+      console.error('Error loading current skin:', error);
+      this.currentSkin = SKIN_CONFIG.DEFAULT_SKIN;
+    }
+  }
+
+  /**
+   * Guarda la skin actual en localStorage
+   */
+  private saveCurrentSkin(): void {
+    try {
+      localStorage.setItem('snake-current-skin', this.currentSkin);
+    } catch (error) {
+      console.error('Error saving current skin:', error);
+    }
   }
   
   /**
@@ -217,5 +328,6 @@ export class SpriteService {
     this.sprites.clear();
     this.loadedCount = 0;
     this.loadingPromise = null;
+    this.currentSkin = SKIN_CONFIG.DEFAULT_SKIN;
   }
 }

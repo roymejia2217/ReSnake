@@ -8,6 +8,7 @@ export type MenuScreen =
   | 'main-menu' 
   | 'game-mode-select' 
   | 'player-name' 
+  | 'skin-select'
   | 'options' 
   | 'leaderboard' 
   | 'game'
@@ -86,6 +87,7 @@ export class MenuService {
       'main-menu',
       'game-mode-select',
       'player-name',
+      'skin-select',
       'options',
       'leaderboard',
       'game',

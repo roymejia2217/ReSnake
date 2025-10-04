@@ -49,3 +49,28 @@ export const ROMANTIC_EASTER_EGG_CONFIG = {
   SPECIAL_SCORE: 69, // Puntaje especial que activa el mensaje romántico
   SPECIAL_SCORE_TEXT: "Se que este numero es especial para ti" // Texto identificador del mensaje especial
 } as const;
+
+// Configuración del Sistema de Skins
+export const SKIN_CONFIG = {
+  DEFAULT_SKIN: 'default',
+  AVAILABLE_SKINS: [
+    {
+      id: 'default',
+      name: 'Clásica',
+      description: 'Skin verde original',
+      unlockRequirement: { score: -1, mode: 'classic' }, // -1 = siempre desbloqueada
+      color: '#99cc00'
+    },
+    {
+      id: 'skin1',
+      name: 'Roja',
+      description: 'Skin roja desbloqueable',
+      unlockRequirement: { score: 30, mode: 'classic' },
+      color: '#ff4444'
+    }
+  ],
+  NOTIFICATION: {
+    DURATION_MS: 3000,
+    STORAGE_KEY: 'skin-notifications-shown'
+  }
+} as const;

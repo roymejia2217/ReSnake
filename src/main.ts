@@ -23,8 +23,11 @@ import { LeaderboardService } from '@/services/LeaderboardService';
 import { LogoService } from '@/services/LogoService';
 import { SuperFoodService } from '@/services/SuperFoodService';
 import { SpriteService } from '@/services/SpriteService';
+import { SkinService } from '@/services/SkinService';
+import { NotificationService } from '@/services/NotificationService';
+import { StorageService } from '@/services/StorageService';
 import { generateRandomPosition } from '@/utils/helpers';
-import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG, SUPER_FOOD_CONFIG } from '@/config/constants';
+import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG, SUPER_FOOD_CONFIG, SKIN_CONFIG } from '@/config/constants';
 import type { GameMode, Player } from '@/core/gameTypes';
 import type { System } from '@/core/types';
 import './styles/main.css';
@@ -49,6 +52,9 @@ class Game {
   private logoService: LogoService;
   private superFoodService: SuperFoodService;
   private spriteService: SpriteService;
+  private skinService: SkinService;
+  private notificationService: NotificationService;
+  private storageService: StorageService;
   
   // Motor y entidades
   private engine?: GameEngine;
@@ -75,6 +81,9 @@ class Game {
     this.logoService = new LogoService(this.themeService);
     this.superFoodService = new SuperFoodService();
     this.spriteService = new SpriteService();
+    this.skinService = new SkinService();
+    this.notificationService = new NotificationService();
+    this.storageService = new StorageService();
     
     // Configurar callback de expiración de supermanzana
     this.superFoodService.setOnExpired(() => {
@@ -137,6 +146,9 @@ class Game {
     document.getElementById('btn-back-from-name')?.addEventListener('click', () => {
       this.menuService.navigateBack();
     });
+    
+    // ✅ NUEVO: SKIN SELECT
+    this.setupSkinSelectHandlers();
     
     // OPCIONES
     document.getElementById('btn-back-from-options')?.addEventListener('click', () => {
@@ -228,10 +240,25 @@ class Game {
       // Valida y crea el jugador
       this.currentPlayer = this.userService.createPlayer(name);
       
-      // Limpia error y comienza el juego
+      // Limpia error
       errorDiv.style.display = 'none';
       input.value = '';
-      await this.startNewGame();
+      
+      // ✅ NUEVO: Verificar si hay skins desbloqueadas para mostrar selector
+      const availableSkinIds = this.skinService.getAvailableSkinIds();
+      const hasMultipleSkins = availableSkinIds.length > 1; // Más que solo la skin default
+      
+      console.log('Debug Skin Selection:', {
+        availableSkinIds,
+        hasMultipleSkins,
+        unlockedSkins: this.skinService.getUnlockedSkins()
+      });
+      
+      if (hasMultipleSkins) {
+        this.menuService.navigateTo('skin-select');
+      } else {
+        await this.startNewGame();
+      }
     } catch (error) {
       // Muestra error de validación
       errorDiv.textContent = error instanceof Error ? error.message : this.i18n.t('playerName.error');
@@ -243,6 +270,126 @@ class Game {
     }
   }
   
+  /**
+   * ✅ NUEVO: Configura los manejadores de selección de skins
+   */
+  private setupSkinSelectHandlers(): void {
+    document.getElementById('btn-back-from-skin-select')?.addEventListener('click', () => {
+      this.menuService.navigateBack();
+    });
+
+    document.getElementById('btn-continue-from-skin-select')?.addEventListener('click', async () => {
+      await this.startNewGame();
+    });
+
+    // Cargar skins disponibles cuando se abre la pantalla
+    this.menuService.onScreenChange((screen) => {
+      if (screen === 'skin-select') {
+        this.loadSkinSelectOptions();
+      }
+    });
+  }
+
+  /**
+   * ✅ NUEVO: Carga las opciones de skins en la pantalla de selección
+   */
+  private async loadSkinSelectOptions(): Promise<void> {
+    const container = document.getElementById('skin-options-container');
+    if (!container) return;
+
+    const currentSkin = this.skinService.getCurrentSkin();
+    const availableSkinIds = this.skinService.getAvailableSkinIds();
+
+    container.innerHTML = '';
+
+    // Cargar sprites para todas las skins disponibles
+    for (const skinId of availableSkinIds) {
+      await this.spriteService.setSkin(skinId);
+    }
+
+    // Volver a la skin actual
+    await this.spriteService.setSkin(currentSkin);
+
+    SKIN_CONFIG.AVAILABLE_SKINS.forEach(skin => {
+      const isAvailable = availableSkinIds.includes(skin.id);
+      const isCurrent = skin.id === currentSkin;
+
+      const skinElement = document.createElement('div');
+      skinElement.className = `skin-option ${isCurrent ? 'selected' : ''} ${!isAvailable ? 'locked' : ''}`;
+      skinElement.dataset.skinId = skin.id;
+
+      // Obtener el sprite correcto para esta skin
+      const headSprite = this.spriteService.getSpriteForSkin(skin.id, 'head');
+      const spriteSrc = headSprite?.src || '';
+
+      skinElement.innerHTML = `
+        <div class="skin-preview" data-skin-id="${skin.id}">
+          <img src="${spriteSrc}" alt="${skin.name}" class="skin-head-sprite" />
+        </div>
+        <div class="skin-info">
+          <h3>${skin.name}</h3>
+          <p>${skin.description}</p>
+          ${!isAvailable ? `<small>Requiere ${skin.unlockRequirement.score} puntos en modo ${skin.unlockRequirement.mode}</small>` : ''}
+        </div>
+        ${isCurrent ? '<div class="selected-indicator">✓</div>' : ''}
+      `;
+
+      if (isAvailable) {
+        skinElement.addEventListener('click', () => {
+          this.selectSkin(skin.id);
+        });
+      }
+
+      container.appendChild(skinElement);
+    });
+  }
+
+  /**
+   * ✅ NUEVO: Selecciona una skin
+   */
+  private async selectSkin(skinId: string): Promise<void> {
+    if (this.skinService.setCurrentSkin(skinId)) {
+      // Cambiar sprite del preview
+      await this.spriteService.setSkin(skinId);
+      
+      // Actualizar UI
+      document.querySelectorAll('.skin-option').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`[data-skin-id="${skinId}"]`)?.classList.add('selected');
+      
+      // Actualizar indicador de selección
+      document.querySelectorAll('.selected-indicator').forEach(el => el.remove());
+      const selectedElement = document.querySelector(`[data-skin-id="${skinId}"]`);
+      if (selectedElement) {
+        const indicator = document.createElement('div');
+        indicator.className = 'selected-indicator';
+        indicator.textContent = '✓';
+        selectedElement.appendChild(indicator);
+      }
+      
+      // Actualizar sprites en los previews
+      this.updateSkinPreviews();
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Actualiza los sprites mostrados en los previews de skins
+   */
+  private updateSkinPreviews(): void {
+    document.querySelectorAll('.skin-preview').forEach(preview => {
+      const skinId = preview.getAttribute('data-skin-id');
+      if (skinId) {
+        const img = preview.querySelector('.skin-head-sprite') as HTMLImageElement;
+        if (img) {
+          // Obtener el sprite del head para la skin específica
+          const headSprite = this.spriteService.getSpriteForSkin(skinId, 'head');
+          if (headSprite) {
+            img.src = headSprite.src;
+          }
+        }
+      }
+    });
+  }
+
   /**
    * Configura los manejadores de opciones
    */
@@ -349,6 +496,10 @@ class Game {
    */
   private async startNewGame(): Promise<void> {
     if (!this.currentPlayer) return;
+    
+    // ✅ NUEVO: Cargar skin activa antes de configurar el juego
+    const currentSkin = this.skinService.getCurrentSkin();
+    await this.spriteService.setSkin(currentSkin);
     
     await this.setupGame();
     this.menuService.navigateTo('game');
@@ -643,6 +794,27 @@ class Game {
         score,
         this.currentMode
       );
+
+      // ✅ NUEVO: Verificar y desbloquear skins
+      const newlyUnlockedSkins = this.skinService.checkAndUnlockSkins(score, this.currentMode);
+      
+      console.log('Debug Skin Unlock:', {
+        score,
+        mode: this.currentMode,
+        newlyUnlockedSkins,
+        availableSkinIds: this.skinService.getAvailableSkinIds()
+      });
+      
+      // Mostrar notificaciones para skins recién desbloqueadas
+      newlyUnlockedSkins.forEach(skinId => {
+        if (this.skinService.shouldShowNotification(skinId)) {
+          this.notificationService.showSkinUnlockedNotification(skinId);
+          this.skinService.markNotificationShown(skinId);
+        }
+      });
+
+      // Actualizar puntuación máxima en StorageService
+      this.storageService.updateMaxScore(this.currentMode, score);
     }
     
     // ✅ PASO 3: Mostrar pantalla con los datos correctos
@@ -651,13 +823,14 @@ class Game {
   
   /**
    * Muestra la pantalla de game over con estadísticas inteligentes
-   * REFACTORIZADO: Recibe los datos de récords ya calculados para evitar re-cálculos incorrectos
+   * REFACTORIZADO: Lógica minimalista - solo muestra mensajes cuando realmente importa
+   * Principio KISS: Keep It Simple, Stupid
    */
   private async showGameOver(
     isNewWorldRecord: boolean,
     isNewPersonalRecord: boolean,
     hasGoodScore: boolean,
-    personalBestBeforeSave: number,
+    _personalBestBeforeSave: number, // Prefijo _ indica parámetro no utilizado
     isSpecial69: boolean
   ): Promise<void> {
     const finalScoreEl = document.getElementById('final-score');
@@ -683,31 +856,36 @@ class Game {
       romanticMessageContainer.style.display = 'none';
     }
     
-    // Mostrar información de récords usando los datos ya calculados
+    // ✅ NUEVA LÓGICA MINIMALISTA: Solo mostrar mensajes cuando realmente importa
     if (recordInfoEl) {
-      const currentRecord = this.leaderboardService.getGlobalBestScore(this.currentMode);
+      // Determinar el ranking global del jugador
+      const playerRank = await this.getPlayerGlobalRank(score, this.currentMode);
       
       if (isNewWorldRecord) {
-        // ¡NUEVO RÉCORD MUNDIAL!
-        recordInfoEl.textContent = `🏆 ${this.i18n.t('game.newWorldRecord')}!`;
+        // ¡NUEVO RÉCORD MUNDIAL! - TOP 1
+        recordInfoEl.textContent = `🏆 ¡NUEVO RÉCORD MUNDIAL!`;
         recordInfoEl.style.color = 'var(--color-snake)';
         recordInfoEl.style.fontWeight = 'bold';
         recordInfoEl.style.animation = 'pulse 1s infinite';
-      } else if (isNewPersonalRecord) {
-        // Nuevo récord personal
-        recordInfoEl.textContent = `⭐ ${this.i18n.t('game.newPersonalRecord')}! (${this.i18n.t('game.worldRecord')}: ${currentRecord})`;
-        recordInfoEl.style.color = '#ffd700';
+      } else if (playerRank === 2) {
+        // TOP 2
+        recordInfoEl.textContent = `🥈 TOP 2 GLOBAL`;
+        recordInfoEl.style.color = '#c0c0c0';
         recordInfoEl.style.fontWeight = 'bold';
-      } else {
-        // No es récord, muestra información del récord actual
-        recordInfoEl.textContent = `${this.i18n.t('game.worldRecord')}: ${currentRecord} | ${this.i18n.t('game.personalBest')}: ${personalBestBeforeSave}`;
-        recordInfoEl.style.color = 'var(--panel-text-secondary)';
-        recordInfoEl.style.fontWeight = 'normal';
         recordInfoEl.style.animation = 'none';
+      } else if (playerRank === 3) {
+        // TOP 3
+        recordInfoEl.textContent = `🥉 TOP 3 GLOBAL`;
+        recordInfoEl.style.color = '#cd7f32';
+        recordInfoEl.style.fontWeight = 'bold';
+        recordInfoEl.style.animation = 'none';
+      } else {
+        // No es top 3 - NO MOSTRAR NADA (interfaz limpia)
+        recordInfoEl.style.display = 'none';
       }
     }
     
-    // ✅ Mostrar mensaje romántico con los datos correctos
+    // ✅ Mostrar mensaje romántico con los datos correctos (PRESERVADO INTACTO)
     this.showRomanticGameOverMessage(
       romanticMessageContainer, 
       romanticMessageText, 
@@ -721,6 +899,46 @@ class Game {
     this.menuService.navigateTo('game-over', false);
   }
   
+  /**
+   * NUEVO: Obtiene el ranking global de un jugador basado en su puntuación
+   * Retorna 1 si es récord mundial, 2 si es segundo, 3 si es tercero, o null si no está en top 3
+   */
+  private async getPlayerGlobalRank(score: number, mode: GameMode): Promise<number | null> {
+    try {
+      // Obtener las mejores puntuaciones globales del modo
+      const topScores = await this.leaderboardService.getGlobalLeaderboard(3, mode);
+      
+      // Si no hay suficientes puntuaciones, verificar contra récord local
+      if (topScores.length < 3) {
+        const localBest = this.leaderboardService.getGlobalBestScore(mode);
+        if (score >= localBest) {
+          return 1; // Es el mejor puntaje disponible
+        }
+        return null;
+      }
+      
+      // Determinar ranking basado en las top 3 puntuaciones
+      if (score >= topScores[0].score) {
+        return 1; // TOP 1
+      } else if (score >= topScores[1].score) {
+        return 2; // TOP 2
+      } else if (score >= topScores[2].score) {
+        return 3; // TOP 3
+      }
+      
+      return null; // No está en top 3
+    } catch (error) {
+      console.warn('Error obteniendo ranking global, usando fallback local:', error);
+      
+      // Fallback: usar ranking local
+      const localBest = this.leaderboardService.getGlobalBestScore(mode);
+      if (score >= localBest) {
+        return 1; // Es el mejor puntaje local
+      }
+      return null;
+    }
+  }
+
   /**
    * NUEVO: Método unificado para mostrar mensaje romántico en game over
    * Reemplaza las 3 llamadas duplicadas anteriores
