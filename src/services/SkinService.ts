@@ -47,7 +47,7 @@ export class SkinService {
   /**
    * Obtiene todas las skins disponibles
    */
-  getAvailableSkins(): Skin[] {
+  getAvailableSkins(): readonly Skin[] {
     return SKIN_CONFIG.AVAILABLE_SKINS;
   }
 
@@ -62,7 +62,7 @@ export class SkinService {
    * Obtiene los IDs de todas las skins disponibles para el usuario (incluye default + desbloqueadas)
    */
   getAvailableSkinIds(): string[] {
-    const availableIds = [SKIN_CONFIG.DEFAULT_SKIN]; // Siempre incluir default
+    const availableIds: string[] = [SKIN_CONFIG.DEFAULT_SKIN]; // Siempre incluir default
     
     // Agregar skins desbloqueadas dinámicamente
     this.unlockedSkins.forEach(unlocked => {
@@ -235,20 +235,6 @@ export class SkinService {
     }
   }
 
-  /**
-   * Carga la skin actual desde localStorage
-   */
-  private loadCurrentSkin(): void {
-    try {
-      const saved = localStorage.getItem('snake-current-skin');
-      if (saved && (this.isSkinUnlocked(saved) || saved === SKIN_CONFIG.DEFAULT_SKIN)) {
-        this.currentSkin = saved;
-      }
-    } catch (error) {
-      console.error('Error loading current skin:', error);
-      this.currentSkin = SKIN_CONFIG.DEFAULT_SKIN;
-    }
-  }
 
   /**
    * Reinicia el servicio (útil para testing)
