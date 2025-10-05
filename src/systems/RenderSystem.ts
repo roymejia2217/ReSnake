@@ -18,6 +18,7 @@ import { lerp } from '@/utils/AnimationHelper';
 import type { Velocity } from '@/components/Velocity';
 import type { RomanticEasterEggService } from '@/services/RomanticEasterEggService';
 import type { SpriteService } from '@/services/SpriteService';
+import type { ItemSpriteService } from '@/services/ItemSpriteService';
 
 // Interfaz para partículas de corazón en la lluvia
 interface HeartParticle {
@@ -48,6 +49,9 @@ export class RenderSystem implements System {
   
   // ✅ NUEVO: Servicio de sprites para renderizado optimizado
   private spriteService?: SpriteService;
+  
+  // ✅ NUEVO: Servicio de sprites para items (manzana, supermanzana, etc.)
+  private itemSpriteService?: ItemSpriteService;
   
   // Control de barra de progreso de supermanzana
   private superFoodExpireAt: number | null = null;
@@ -485,7 +489,8 @@ export class RenderSystem implements System {
   }
   
   /**
-   * Dibuja la comida con animaciones
+   * Dibuja la comida con animaciones usando sprite optimizado
+   * ✅ REFACTORIZADO: Usa sprite en lugar de gradientes para mejor rendimiento
    */
   private renderFood(): void {
     const renderable = this.food.getComponent<Renderable>('Renderable');
@@ -493,7 +498,6 @@ export class RenderSystem implements System {
     
     const centerX = this.food.position.x * this.cellSize + this.cellSize / 2;
     const centerY = this.food.position.y * this.cellSize + this.cellSize / 2;
-    const baseRadius = this.cellSize / 2 - 1;
     
     // Animación de spawn (aparición)
     const spawnProgress = this.food.getSpawnProgress(this.currentTime);
@@ -508,13 +512,62 @@ export class RenderSystem implements System {
       : 1;
     
     const finalScale = spawnScale * eatScale;
-    const radius = baseRadius * finalScale;
     
-    if (radius <= 0) return;
+    if (finalScale <= 0) return;
     
     // Animación de pulsación sutil
     const pulseScale = 1 + Math.sin(this.currentTime / 400) * 0.08;
+    const totalScale = finalScale * pulseScale;
+    
+    // ✅ OPTIMIZACIÓN: Usar sprite si está disponible, fallback a renderizado Canvas
+    const appleSprite = this.itemSpriteService?.getSprite('apple');
+    
+    if (appleSprite) {
+      // Renderizado optimizado con sprite
+      this.drawItemSprite(appleSprite, centerX, centerY, totalScale);
+    } else {
+      // Fallback: renderizado Canvas original (mantiene compatibilidad)
+      this.renderFoodFallback(centerX, centerY, finalScale, pulseScale);
+    }
+  }
+  
+  /**
+   * ✅ NUEVO: Dibuja un sprite de item con escalado y animaciones
+   */
+  private drawItemSprite(sprite: HTMLImageElement, centerX: number, centerY: number, scale: number): void {
+    const scaledSize = this.cellSize * scale;
+    
+    // Sombra sutil para el sprite
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    this.ctx.shadowBlur = this.cellSize * 0.2;
+    this.ctx.shadowOffsetX = this.cellSize * 0.05;
+    this.ctx.shadowOffsetY = this.cellSize * 0.05;
+    
+    // Dibujar sprite centrado
+    this.ctx.drawImage(
+      sprite, 
+      centerX - scaledSize / 2, 
+      centerY - scaledSize / 2, 
+      scaledSize, 
+      scaledSize
+    );
+    
+    // Reset sombra
+    this.ctx.shadowColor = 'transparent';
+    this.ctx.shadowBlur = 0;
+    this.ctx.shadowOffsetX = 0;
+    this.ctx.shadowOffsetY = 0;
+  }
+  
+  /**
+   * ✅ NUEVO: Fallback para renderizado Canvas original (compatibilidad)
+   */
+  private renderFoodFallback(centerX: number, centerY: number, finalScale: number, pulseScale: number): void {
+    const baseRadius = this.cellSize / 2 - 1;
+    const radius = baseRadius * finalScale;
     const pulseRadius = radius * pulseScale;
+    
+    if (radius <= 0) return;
     
     // Sombra
     this.ctx.shadowColor = 'rgba(255, 90, 95, 0.4)';
@@ -579,7 +632,8 @@ export class RenderSystem implements System {
   }
   
   /**
-   * Dibuja la supermanzana con animaciones
+   * Dibuja la supermanzana con animaciones usando sprite optimizado
+   * ✅ REFACTORIZADO: Preparado para usar sprite cuando esté disponible
    */
   private renderSuperFood(): void {
     if (!this.superFood) return;
@@ -605,9 +659,50 @@ export class RenderSystem implements System {
     
     if (finalScale <= 0) return;
     
-    // Renderizar cada celda de la supermanzana
+    // ✅ FUTURO: Usar sprite de supermanzana cuando esté disponible
+    const superAppleSprite = this.itemSpriteService?.getSprite('super_apple');
+    
+    if (superAppleSprite) {
+      // Renderizado optimizado con sprite (cuando esté implementado)
+      this.renderSuperFoodWithSprite(coveredCells, superAppleSprite, finalScale);
+    } else {
+      // Renderizado Canvas actual (mantiene compatibilidad)
+      coveredCells.forEach(cell => {
+        this.renderSuperFoodCell(cell, renderable.color, finalScale);
+      });
+    }
+  }
+  
+  /**
+   * ✅ NUEVO: Renderiza supermanzana usando sprite (preparado para futura implementación)
+   */
+  private renderSuperFoodWithSprite(
+    coveredCells: {x: number, y: number}[], 
+    sprite: HTMLImageElement, 
+    scale: number
+  ): void {
+    // Animación de pulsación más intensa para supermanzana
+    const pulseScale = 1 + Math.sin(this.currentTime / 300) * 0.15;
+    const totalScale = scale * pulseScale;
+    
+    // Renderizar cada celda con sprite
     coveredCells.forEach(cell => {
-      this.renderSuperFoodCell(cell, renderable.color, finalScale);
+      const centerX = cell.x * this.cellSize + this.cellSize / 2;
+      const centerY = cell.y * this.cellSize + this.cellSize / 2;
+      
+      // Sombra más intensa para supermanzana
+      this.ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+      this.ctx.shadowBlur = this.cellSize * 0.4;
+      this.ctx.shadowOffsetX = 0;
+      this.ctx.shadowOffsetY = 0;
+      
+      this.drawItemSprite(sprite, centerX, centerY, totalScale);
+      
+      // Reset sombra
+      this.ctx.shadowColor = 'transparent';
+      this.ctx.shadowBlur = 0;
+      this.ctx.shadowOffsetX = 0;
+      this.ctx.shadowOffsetY = 0;
     });
   }
   
@@ -816,6 +911,13 @@ export class RenderSystem implements System {
    */
   setSpriteService(spriteService: SpriteService): void {
     this.spriteService = spriteService;
+  }
+  
+  /**
+   * ✅ NUEVO: Establece el servicio de sprites para items
+   */
+  setItemSpriteService(itemSpriteService: ItemSpriteService): void {
+    this.itemSpriteService = itemSpriteService;
   }
 
   /**

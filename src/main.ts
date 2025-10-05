@@ -23,6 +23,7 @@ import { LeaderboardService } from '@/services/LeaderboardService';
 import { LogoService } from '@/services/LogoService';
 import { SuperFoodService } from '@/services/SuperFoodService';
 import { SpriteService } from '@/services/SpriteService';
+import { ItemSpriteService } from '@/services/ItemSpriteService';
 import { SkinService } from '@/services/SkinService';
 import { NotificationService } from '@/services/NotificationService';
 import { StorageService } from '@/services/StorageService';
@@ -52,6 +53,7 @@ class Game {
   private logoService: LogoService;
   private superFoodService: SuperFoodService;
   private spriteService: SpriteService;
+  private itemSpriteService: ItemSpriteService;
   private skinService: SkinService;
   private notificationService: NotificationService;
   private storageService: StorageService;
@@ -81,6 +83,7 @@ class Game {
     this.logoService = new LogoService(this.themeService);
     this.superFoodService = new SuperFoodService();
     this.spriteService = new SpriteService();
+    this.itemSpriteService = new ItemSpriteService();
     this.skinService = new SkinService();
     this.notificationService = new NotificationService();
     this.storageService = new StorageService();
@@ -523,8 +526,11 @@ class Game {
   private async setupGame(): Promise<void> {
     // ✅ NUEVO: Cargar sprites antes de iniciar el juego
     try {
-      await this.spriteService.loadSprites();
-      console.log('Sprites loaded successfully');
+      await Promise.all([
+        this.spriteService.loadSprites(),
+        this.itemSpriteService.loadSprites()
+      ]);
+      console.log('All sprites loaded successfully');
     } catch (error) {
       console.warn('Failed to load sprites, using Canvas fallback:', error);
     }
@@ -564,6 +570,9 @@ class Game {
     
     // ✅ NUEVO: Configurar servicio de sprites en el sistema de renderizado
     renderSystem.setSpriteService(this.spriteService);
+    
+    // ✅ NUEVO: Configurar servicio de sprites para items
+    renderSystem.setItemSpriteService(this.itemSpriteService);
     
     // Configura el modo de juego
     const modeConfig = this.gameModeService.getCurrentConfig();
