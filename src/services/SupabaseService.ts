@@ -151,7 +151,7 @@ export class SupabaseService {
     }
     
     // Validación de modo
-    if (!['classic', 'speed', 'wall'].includes(entry.mode)) {
+    if (!['classic', 'speed', 'wall', 'obstacles'].includes(entry.mode)) {
       throw new Error('Modo de juego inválido');
     }
     
@@ -411,7 +411,7 @@ export class SupabaseService {
       throw new Error(SUPABASE_ERROR_MESSAGES.CONNECTION_FAILED);
     }
     
-    const modes: GameMode[] = ['classic', 'speed', 'wall'];
+    const modes: GameMode[] = ['classic', 'speed', 'wall', 'obstacles'];
     const stats: any = {};
     
     for (const mode of modes) {

@@ -172,7 +172,7 @@ export class LeaderboardService {
    * Obtiene estadísticas por modo de juego
    */
   getStatsByMode(): Record<GameMode, { count: number; avgScore: number; maxScore: number; topScores: ScoreEntry[] }> {
-    const modes: GameMode[] = ['classic', 'speed', 'wall'];
+    const modes: GameMode[] = ['classic', 'speed', 'wall', 'obstacles'];
     const stats: any = {};
 
     modes.forEach(mode => {
@@ -387,7 +387,7 @@ export class LeaderboardService {
       
       // Convertir estadísticas globales al formato esperado
       const formattedStats: any = {};
-      const modes: GameMode[] = ['classic', 'speed', 'wall'];
+      const modes: GameMode[] = ['classic', 'speed', 'wall', 'obstacles'];
       
       modes.forEach(mode => {
         const global = globalStats[mode];
@@ -420,7 +420,7 @@ export class LeaderboardService {
       typeof obj.score === 'number' &&
       typeof obj.mode === 'string' &&
       typeof obj.timestamp === 'number' &&
-      ['classic', 'speed', 'wall'].includes(obj.mode) &&
+      ['classic', 'speed', 'wall', 'obstacles'].includes(obj.mode) &&
       obj.score >= 0
     );
   }
@@ -449,7 +449,7 @@ export class LeaderboardService {
    * Recorta las puntuaciones por modo al límite máximo (mantiene las mejores 20 por modo)
    */
   private trimScoresByMode(): void {
-    const modes: GameMode[] = ['classic', 'speed', 'wall'];
+    const modes: GameMode[] = ['classic', 'speed', 'wall', 'obstacles'];
     let allScores: ScoreEntry[] = [];
 
     // Mantiene las mejores 20 puntuaciones por cada modo

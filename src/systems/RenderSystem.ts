@@ -61,6 +61,9 @@ export class RenderSystem implements System {
   private heartRainActive = false;
   private heartRainStartTime = 0;
   
+  // Obstáculos para el modo obstacles
+  private obstacles: import('@/entities/Obstacle').Obstacle[] = [];
+  
   constructor(
     private canvas: HTMLCanvasElement,
     private snake: Snake,
@@ -172,6 +175,7 @@ export class RenderSystem implements System {
     this.currentTime = performance.now();
     this.updateThemeColors();
     this.clearCanvas();
+    this.renderObstacles();
     this.renderSnake();
     this.renderFood();
     this.renderSuperFood();
@@ -252,19 +256,52 @@ export class RenderSystem implements System {
   
 
   /**
-   * ✅ NUEVO: Calcula ángulos de rotación para cada segmento de la serpiente
+   * ✅ CORREGIDO: Calcula ángulos de rotación para cada segmento de la serpiente
+   * La cabeza mantiene su orientación hasta que se genere realmente una curvatura
+   * Maneja correctamente el wrap-around detectando distancias anómalas
    */
   private getRotationAngle(velocity: Velocity | undefined, body: Position[]): number[] {
     const angles: number[] = [];
     
     for (let i = 0; i < body.length; i++) {
       if (i === 0) {
-        // Cabeza: rotación basada en dirección actual
-        angles.push(this.getDirectionAngle(velocity));
+        // ✅ CORRECCIÓN CRÍTICA: Cabeza usa dirección del movimiento ACTUAL del cuerpo
+        // Mantiene orientación hasta que se genere realmente la curvatura
+        if (body.length > 1) {
+          // ✅ DETECCIÓN DE WRAP-AROUND: Si la distancia es > 1, hay wrap-around
+          const distance = this.getManhattanDistance(body[0], body[1]);
+          if (distance > 1) {
+            // Durante wrap-around, usar la dirección del Velocity
+            angles.push(this.getDirectionAngle(velocity));
+          } else {
+            // Movimiento normal: usar dirección del cuerpo
+            const bodyMovementDirection = this.getSegmentDirection(body[1], body[0]);
+            angles.push(this.getDirectionAngle(bodyMovementDirection));
+          }
+        } else {
+          // Fallback para cuando solo hay cabeza
+          angles.push(this.getDirectionAngle(velocity));
+        }
       } else if (i === body.length - 1) {
+        // ✅ CORRECCIÓN WRAP-AROUND PARA COLA: Detecta wrap-around en la cola
         // Cola: rotación basada en dirección hacia el segmento anterior
-        const tailDirection = this.getSegmentDirection(body[i], body[i - 1]);
-        angles.push(this.getDirectionAngle(tailDirection));
+        if (body.length > 1) {
+          // ✅ DETECCIÓN DE WRAP-AROUND EN COLA: Si la distancia es > 1, hay wrap-around
+          const distance = this.getManhattanDistance(body[i], body[i - 1]);
+          if (distance > 1) {
+            // ✅ CORRECCIÓN: Durante wrap-around, usar la misma dirección del Velocity
+            // La cola debe apuntar en la misma dirección que el movimiento actual
+            angles.push(this.getDirectionAngle(velocity));
+          } else {
+            // Movimiento normal: usar dirección normal entre segmentos
+            const tailDirection = this.getSegmentDirection(body[i], body[i - 1]);
+            angles.push(this.getDirectionAngle(tailDirection));
+          }
+        } else {
+          // Fallback para cuando solo hay un segmento
+          const tailDirection = this.getSegmentDirection(body[i], body[i - 1]);
+          angles.push(this.getDirectionAngle(tailDirection));
+        }
       } else {
         // Cuerpo: rotación basada en dirección entre segmentos adyacentes
         const bodyDirection = this.getSegmentDirection(body[i - 1], body[i + 1]);
@@ -283,6 +320,14 @@ export class RenderSystem implements System {
       x: to.x - from.x,
       y: to.y - from.y
     };
+  }
+  
+  /**
+   * ✅ NUEVO: Calcula la distancia Manhattan entre dos posiciones
+   * Usado para detectar wrap-around cuando la distancia es > 1
+   */
+  private getManhattanDistance(pos1: Position, pos2: Position): number {
+    return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
   }
   
   /**
@@ -1098,5 +1143,62 @@ export class RenderSystem implements System {
     
     this.ctx.fill();
     this.ctx.stroke();
+  }
+  
+  /**
+   * Establece los obstáculos para renderizar
+   */
+  setObstacles(obstacles: import('@/entities/Obstacle').Obstacle[]): void {
+    this.obstacles = obstacles;
+  }
+  
+  /**
+   * Renderiza los obstáculos como cajas sólidas con efecto 3D
+   */
+  private renderObstacles(): void {
+    if (this.obstacles.length === 0) return;
+    
+    this.obstacles.forEach(obstacle => {
+      const x = obstacle.position.x * this.cellSize;
+      const y = obstacle.position.y * this.cellSize;
+      
+      // Color base del obstáculo (marrón tipo caja de madera)
+      const baseColor = obstacle.getComponent<Renderable>('Renderable')?.color || '#8b4513';
+      
+      this.ctx.save();
+      
+      // Sombra para efecto 3D
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      this.ctx.shadowBlur = 4;
+      this.ctx.shadowOffsetX = 2;
+      this.ctx.shadowOffsetY = 2;
+      
+      // Caja principal
+      this.ctx.fillStyle = baseColor;
+      this.ctx.fillRect(x, y, this.cellSize, this.cellSize);
+      
+      // Borde más oscuro para efecto de profundidad
+      this.ctx.strokeStyle = this.adjustBrightness(baseColor, -30);
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(x, y, this.cellSize, this.cellSize);
+      
+      // Highlight para efecto 3D (esquina superior izquierda)
+      this.ctx.fillStyle = this.adjustBrightness(baseColor, 40);
+      this.ctx.fillRect(x + 2, y + 2, this.cellSize / 3, 2);
+      this.ctx.fillRect(x + 2, y + 2, 2, this.cellSize / 3);
+      
+      this.ctx.restore();
+    });
+  }
+  
+  /**
+   * Ajusta el brillo de un color hexadecimal
+   */
+  private adjustBrightness(color: string, amount: number): string {
+    const num = parseInt(color.replace('#', ''), 16);
+    const r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) + amount));
+    const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
+    const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
   }
 }

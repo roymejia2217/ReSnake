@@ -7,6 +7,7 @@
 import { GameEngine } from '@/core/Engine';
 import { Snake } from '@/entities/Snake';
 import { Food } from '@/entities/Food';
+import { Obstacle } from '@/entities/Obstacle';
 import { Position } from '@/components/Position';
 import { InputSystem } from '@/systems/InputSystem';
 import { MovementSystem } from '@/systems/MovementSystem';
@@ -27,8 +28,8 @@ import { ItemSpriteService } from '@/services/ItemSpriteService';
 import { SkinService } from '@/services/SkinService';
 import { NotificationService } from '@/services/NotificationService';
 import { StorageService } from '@/services/StorageService';
-import { generateRandomPosition } from '@/utils/helpers';
-import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG, SUPER_FOOD_CONFIG, SKIN_CONFIG } from '@/config/constants';
+import { generateRandomPosition, generateSafeObstaclePosition } from '@/utils/helpers';
+import { GAME_CONFIG, ROMANTIC_EASTER_EGG_CONFIG, SUPER_FOOD_CONFIG, SKIN_CONFIG, OBSTACLE_CONFIG } from '@/config/constants';
 import type { GameMode, Player } from '@/core/gameTypes';
 import type { System } from '@/core/types';
 import './styles/main.css';
@@ -62,6 +63,7 @@ class Game {
   private engine?: GameEngine;
   private snake?: Snake;
   private food?: Food;
+  private obstacles: Obstacle[] = [];
   private inputSystem?: InputSystem;
   private movementSystem?: MovementSystem;
   
@@ -547,6 +549,14 @@ class Game {
     this.scoreService.reset();
     this.superFoodService.reset();
     
+    // Inicializar obstáculos si el modo lo requiere
+    const modeConfig = this.gameModeService.getCurrentConfig();
+    if (modeConfig.hasObstacles) {
+      this.obstacles = this.generateObstacles();
+    } else {
+      this.obstacles = [];
+    }
+    
     // Limpia el sistema de input anterior
     if (this.inputSystem) {
       this.inputSystem.dispose();
@@ -574,8 +584,13 @@ class Game {
     // ✅ NUEVO: Configurar servicio de sprites para items
     renderSystem.setItemSpriteService(this.itemSpriteService);
     
-    // Configura el modo de juego
-    const modeConfig = this.gameModeService.getCurrentConfig();
+    // Configurar obstáculos en los sistemas
+    if (this.obstacles.length > 0) {
+      collisionSystem.setObstacles(this.obstacles);
+      renderSystem.setObstacles(this.obstacles);
+    }
+    
+    // Configura el modo de juego (reutiliza modeConfig de línea 553)
     this.movementSystem.setWallCollision(modeConfig.hasWallCollision);
     this.movementSystem.setOnWallCollision(() => this.handleGameOver());
     
@@ -668,6 +683,12 @@ class Game {
     
     if (this.snake && this.food) {
       this.food.relocate(generateRandomPosition(this.snake.body), performance.now());
+    }
+    
+    // Reposicionar obstáculos si el modo los tiene
+    const modeConfig = this.gameModeService.getCurrentConfig();
+    if (modeConfig.hasObstacles && this.obstacles.length > 0) {
+      this.repositionObstacles();
     }
     
     // Verificar si debe aparecer supermanzana
@@ -1205,6 +1226,74 @@ class Game {
     this.engine?.stop();
     this.menuService.clearHistory();
     this.menuService.navigateTo('main-menu');
+  }
+  
+  /**
+   * Genera obstáculos en posiciones seguras
+   * Evita colisiones con la serpiente y la comida
+   */
+  private generateObstacles(): Obstacle[] {
+    if (!this.snake || !this.food) return [];
+    
+    const obstacles: Obstacle[] = [];
+    const excludePositions: Position[] = [...this.snake.body];
+    
+    for (let i = 0; i < OBSTACLE_CONFIG.INITIAL_COUNT; i++) {
+      const position = generateSafeObstaclePosition(
+        excludePositions,
+        [
+          { position: this.snake.head, minDistance: OBSTACLE_CONFIG.MIN_DISTANCE_FROM_SNAKE },
+          { position: this.food.position, minDistance: OBSTACLE_CONFIG.MIN_DISTANCE_FROM_FOOD }
+        ]
+      );
+      
+      const obstacle = new Obstacle(position);
+      obstacles.push(obstacle);
+      excludePositions.push(position);
+    }
+    
+    return obstacles;
+  }
+  
+  /**
+   * Reposiciona todos los obstáculos en nuevas posiciones seguras
+   * Se llama cada vez que la serpiente come comida
+   */
+  private repositionObstacles(): void {
+    if (!this.snake || !this.food) return;
+    
+    // Recopilar posiciones a excluir
+    const excludePositions: Position[] = [...this.snake.body, this.food.position];
+    
+    // Añadir posición de supermanzana si está activa
+    const superFood = this.superFoodService.getSuperFood();
+    if (superFood) {
+      excludePositions.push(...superFood.getCoveredCells());
+    }
+    
+    // Reposicionar cada obstáculo
+    this.obstacles.forEach(obstacle => {
+      const newPosition = generateSafeObstaclePosition(
+        excludePositions,
+        [
+          { position: this.snake!.head, minDistance: OBSTACLE_CONFIG.MIN_DISTANCE_FROM_SNAKE },
+          { position: this.food!.position, minDistance: OBSTACLE_CONFIG.MIN_DISTANCE_FROM_FOOD }
+        ]
+      );
+      
+      obstacle.relocate(newPosition);
+      excludePositions.push(newPosition);
+    });
+    
+    // Actualizar referencia en los sistemas
+    const systems = this.engine?.getSystems();
+    systems?.forEach((system: System) => {
+      if (system instanceof CollisionSystem) {
+        system.setObstacles(this.obstacles);
+      } else if (system instanceof RenderSystem) {
+        system.setObstacles(this.obstacles);
+      }
+    });
   }
 }
 

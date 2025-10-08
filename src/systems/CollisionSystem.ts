@@ -1,6 +1,6 @@
 /**
  * Sistema de Colisiones
- * Detecta colisiones entre serpiente-comida y serpiente-serpiente
+ * Detecta colisiones entre serpiente-comida, serpiente-serpiente y serpiente-obstáculos
  * Principio: Single Responsibility (SOLID)
  */
 
@@ -8,11 +8,13 @@ import type { System } from '@/core/types';
 import type { Snake } from '@/entities/Snake';
 import type { Food } from '@/entities/Food';
 import type { SuperFood } from '@/entities/SuperFood';
+import type { Obstacle } from '@/entities/Obstacle';
 
 export class CollisionSystem implements System {
   private onFoodEaten?: () => void;
   private onSuperFoodEaten?: () => void;
   private onGameOver?: () => void;
+  private obstacles: Obstacle[] = [];
   
   constructor(
     private snake: Snake,
@@ -26,6 +28,7 @@ export class CollisionSystem implements System {
   update(_deltaTime: number, _entities: never[]): void {
     this.checkFoodCollision();
     this.checkSelfCollision();
+    this.checkObstacleCollision();
   }
   
   /**
@@ -70,6 +73,20 @@ export class CollisionSystem implements System {
   }
   
   /**
+   * Verifica si la serpiente choca con algún obstáculo
+   */
+  private checkObstacleCollision(): void {
+    if (this.obstacles.length === 0) return;
+    
+    const head = this.snake.head;
+    const hitObstacle = this.obstacles.some(obstacle => head.equals(obstacle.position));
+    
+    if (hitObstacle) {
+      this.onGameOver?.();
+    }
+  }
+  
+  /**
    * Callback cuando se come la comida
    */
   setOnFoodEaten(callback: () => void): void {
@@ -95,5 +112,12 @@ export class CollisionSystem implements System {
    */
   setSuperFood(superFood?: SuperFood): void {
     this.superFood = superFood;
+  }
+  
+  /**
+   * Establece los obstáculos para la detección de colisiones
+   */
+  setObstacles(obstacles: Obstacle[]): void {
+    this.obstacles = obstacles;
   }
 }

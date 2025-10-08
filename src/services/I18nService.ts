@@ -32,6 +32,8 @@ const translations: LanguagePack = {
       speedDesc: 'La velocidad aumenta con cada manzana',
       wall: 'Pared',
       wallDesc: 'Game over al tocar las paredes',
+      obstacles: 'Obstáculos',
+      obstaclesDesc: 'Esquiva obstáculos que cambian de posición',
       back: 'Volver',
     },
     playerName: {
@@ -91,6 +93,7 @@ const translations: LanguagePack = {
       classic: 'Clásico',
       speed: 'Velocidad',
       wall: 'Pared',
+      obstacles: 'Obstáculos',
     },
   },
   en: {
@@ -108,6 +111,8 @@ const translations: LanguagePack = {
       speedDesc: 'Speed increases with each apple',
       wall: 'Wall',
       wallDesc: 'Game over when hitting walls',
+      obstacles: 'Obstacles',
+      obstaclesDesc: 'Dodge obstacles that change position',
       back: 'Back',
     },
     playerName: {
@@ -167,6 +172,7 @@ const translations: LanguagePack = {
       classic: 'Classic',
       speed: 'Speed',
       wall: 'Wall',
+      obstacles: 'Obstacles',
     },
   },
   it: {
@@ -184,6 +190,8 @@ const translations: LanguagePack = {
       speedDesc: 'La velocità aumenta con ogni mela',
       wall: 'Muro',
       wallDesc: 'Game over quando si toccano i muri',
+      obstacles: 'Ostacoli',
+      obstaclesDesc: 'Schiva ostacoli che cambiano posizione',
       back: 'Indietro',
     },
     playerName: {
@@ -243,6 +251,7 @@ const translations: LanguagePack = {
       classic: 'Classico',
       speed: 'Velocità',
       wall: 'Muro',
+      obstacles: 'Ostacoli',
     },
   },
 };

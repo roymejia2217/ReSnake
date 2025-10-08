@@ -1,15 +1,38 @@
 ---
-description: Regla de integración MCP para ReSnake - uso del grafo de conocimiento y análisis arquitectónico
+description: Regla de integración MCP para ReSnake - uso estricto de grafo de conocimiento, análisis arquitectónico, Supabase y Sequential Thinking
 globs: **/*
 alwaysApply: true
 ---
 
 # Integración MCP - Proyecto ReSnake
 
-## 🧠 MCP KNOWLEDGE GRAPH - USO OBLIGATORIO
+## 🧠 PROTOCOLO ESTRICTO DE USO MCP
 
-### Contexto Persistente Activo
-**ANTES de hacer cualquier modificación, SIEMPRE consultar:**
+### OBLIGATORIO: Sequential Thinking ANTES de Cualquier Acción
+**SIEMPRE usar Sequential Thinking para analizar problemas complejos:**
+
+```typescript
+// ✅ OBLIGATORIO: Usar Sequential Thinking para decisiones complejas
+mcp_sequential-thinking_sequentialthinking({
+  thought: "Análisis del impacto de modificar [componente]...",
+  nextThoughtNeeded: true,
+  thoughtNumber: 1,
+  totalThoughts: 5
+})
+
+// Continuar con pensamientos estructurados hasta completar el análisis
+// SOLO después de completar el análisis proceder con modificaciones
+```
+
+### Cuándo Usar Sequential Thinking (OBLIGATORIO)
+1. **Análisis de arquitectura**: Antes de modificar componentes ECS
+2. **Decisiones arquitectónicas**: Nuevas funcionalidades o cambios estructurales
+3. **Debugging complejo**: Problemas que afectan múltiples sistemas
+4. **Optimización**: Mejoras de rendimiento que impactan varios componentes
+5. **Refactoring**: Cambios que afectan la arquitectura ECS
+
+### Contexto Persistente Activo - MCP KNOWLEDGE GRAPH
+**DESPUÉS de Sequential Thinking, SIEMPRE consultar:**
 
 ```typescript
 // ✅ OBLIGATORIO: Consultar entidades relacionadas
@@ -206,16 +229,221 @@ const criticalFeatures = [
     "adr-analysis": {
       "command": "npx",
       "args": ["-y", "mcp-adr-analysis-server"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "mcp-sequential-thinking"]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-supabase"]
     }
   }
 }
 ```
 
-### Flujo de Trabajo MCP
-1. **Consultar grafo de conocimiento** antes de cambios
-2. **Analizar impacto arquitectónico** con ADR server
-3. **Actualizar conocimiento** después de cambios significativos
-4. **Validar decisiones** contra ADRs existentes
+### Flujo de Trabajo MCP ESTRICTO
+1. **Sequential Thinking** - Analizar problema con pensamientos estructurados
+2. **Consultar grafo de conocimiento** - Entender contexto y relaciones
+3. **ADR Analysis** - Analizar impacto arquitectónico
+4. **Supabase MCP** - Validar esquema y consultas de base de datos
+5. **Actualizar conocimiento** - Persistir cambios en el grafo
+6. **Validar decisiones** - Contra ADRs y arquitectura ECS
+
+## 🗄️ SUPABASE MCP - INTEGRACIÓN OBLIGATORIA
+
+### ANTES de Modificar LeaderboardService o Queries
+**SIEMPRE usar Supabase MCP para validar:**
+
+```typescript
+// ✅ OBLIGATORIO: Buscar documentación de Supabase
+mcp_supabase_search_docs({
+  graphql_query: `
+    query SearchSupabaseDocs {
+      searchDocs(query: "row level security policies", limit: 5) {
+        nodes {
+          title
+          href
+          content
+        }
+      }
+    }
+  `
+})
+
+// ✅ OBLIGATORIO: Listar proyectos disponibles
+mcp_supabase_list_projects({})
+
+// ✅ OBLIGATORIO: Obtener detalles del proyecto
+mcp_supabase_get_project({
+  id: "project_id"
+})
+
+// ✅ OBLIGATORIO: Listar tablas existentes
+mcp_supabase_list_tables({
+  project_id: "project_id",
+  schemas: ["public"]
+})
+
+// ✅ OBLIGATORIO: Ejecutar SQL para validar queries
+mcp_supabase_execute_sql({
+  project_id: "project_id",
+  query: "SELECT * FROM leaderboard ORDER BY score DESC LIMIT 10"
+})
+```
+
+### Casos de Uso Obligatorios de Supabase MCP
+
+#### 1. Validación de Esquema de Base de Datos
+```typescript
+// ✅ OBLIGATORIO: Antes de crear/modificar tablas
+mcp_supabase_list_tables({
+  project_id: "project_id",
+  schemas: ["public"]
+})
+
+// ✅ OBLIGATORIO: Aplicar migraciones con validación
+mcp_supabase_apply_migration({
+  project_id: "project_id",
+  name: "add_leaderboard_table",
+  query: `
+    CREATE TABLE IF NOT EXISTS leaderboard (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      player_name TEXT NOT NULL,
+      score INTEGER NOT NULL,
+      mode TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `
+})
+```
+
+#### 2. Validación de Row Level Security (RLS)
+```typescript
+// ✅ OBLIGATORIO: Verificar políticas RLS
+mcp_supabase_get_advisors({
+  project_id: "project_id",
+  type: "security"
+})
+
+// ✅ OBLIGATORIO: Validar políticas antes de deploy
+mcp_supabase_execute_sql({
+  project_id: "project_id",
+  query: `
+    SELECT * FROM pg_policies 
+    WHERE tablename = 'leaderboard';
+  `
+})
+```
+
+#### 3. Optimización de Queries
+```typescript
+// ✅ OBLIGATORIO: Analizar rendimiento de queries
+mcp_supabase_get_advisors({
+  project_id: "project_id",
+  type: "performance"
+})
+
+// ✅ OBLIGATORIO: Validar índices
+mcp_supabase_execute_sql({
+  project_id: "project_id",
+  query: `
+    SELECT * FROM pg_indexes 
+    WHERE tablename = 'leaderboard';
+  `
+})
+```
+
+#### 4. Generación de TypeScript Types
+```typescript
+// ✅ OBLIGATORIO: Generar tipos después de cambios de esquema
+mcp_supabase_generate_typescript_types({
+  project_id: "project_id"
+})
+
+// Aplicar tipos generados en src/config/supabase.ts
+```
+
+## 📐 ADR ANALYSIS MCP - USO ESTRICTO EXPANDIDO
+
+### ANTES de Cambios Arquitectónicos
+**SIEMPRE usar ADR Analysis para validar:**
+
+```typescript
+// ✅ OBLIGATORIO: Análisis del ecosistema del proyecto
+mcp_adr-analysis_analyze_project_ecosystem({
+  projectPath: "C:\\Users\\Roy\\Downloads\\ReSnake",
+  analysisDepth: "comprehensive",
+  enhancedMode: true,
+  knowledgeEnhancement: true,
+  conversationContext: {
+    userGoals: ["Mantener arquitectura ECS", "Optimizar rendimiento"],
+    constraints: ["Build size ~8KB", "TypeScript estricto"],
+    focusAreas: ["ECS", "performance", "maintainability"]
+  }
+})
+
+// ✅ OBLIGATORIO: Obtener contexto arquitectónico
+mcp_adr-analysis_get_architectural_context({
+  filePath: "src/entities/Snake.ts",
+  includeCompliance: true,
+  conversationContext: {
+    userGoals: ["Modificar comportamiento de Snake"],
+    previousContext: "Análisis de arquitectura ECS"
+  }
+})
+
+// ✅ OBLIGATORIO: Revisar ADRs existentes
+mcp_adr-analysis_review_existing_adrs({
+  adrDirectory: "docs/adrs",
+  projectPath: "C:\\Users\\Roy\\Downloads\\ReSnake",
+  analysisDepth: "comprehensive",
+  generateUpdatePlan: true
+})
+
+// ✅ OBLIGATORIO: Sugerir nuevos ADRs para cambios significativos
+mcp_adr-analysis_suggest_adrs({
+  analysisType: "comprehensive",
+  projectPath: "C:\\Users\\Roy\\Downloads\\ReSnake",
+  conversationContext: {
+    userGoals: ["Añadir nueva funcionalidad"],
+    constraints: ["Mantener arquitectura ECS", "No exceder 8KB"]
+  }
+})
+```
+
+### Validación de Deployment
+```typescript
+// ✅ OBLIGATORIO: Antes de push a producción
+mcp_adr-analysis_deployment_readiness({
+  operation: "check_readiness",
+  projectPath: "C:\\Users\\Roy\\Downloads\\ReSnake",
+  targetEnvironment: "production",
+  strictMode: true,
+  blockOnFailingTests: true,
+  requireAdrCompliance: true
+})
+
+// ✅ OBLIGATORIO: Análisis de progreso
+mcp_adr-analysis_compare_adr_progress({
+  adrDirectory: "docs/adrs",
+  todoPath: "TODO.md",
+  deepCodeAnalysis: true,
+  functionalValidation: true,
+  environmentValidation: true
+})
+```
+
+### Análisis de Seguridad
+```typescript
+// ✅ OBLIGATORIO: Antes de commit de código sensible
+mcp_adr-analysis_analyze_content_security({
+  content: "[código_a_analizar]",
+  contentType: "code",
+  enhancedMode: true,
+  enableMemoryIntegration: true
+})
+```
 
 ## 📊 MÉTRICAS DE CONOCIMIENTO
 
@@ -239,43 +467,137 @@ const criticalFeatures = [
 - **ECS_Architecture**: 9 observaciones (patrón fundamental)
 - **SOLID_Principles**: 9 observaciones (principios de diseño)
 
-## ⚠️ REGLAS DE USO MCP
+## ⚠️ REGLAS DE USO MCP ESTRICTAS
 
 ### Obligatorio ANTES de Modificar Código
-1. **Consultar entidades relacionadas** en el grafo
-2. **Verificar relaciones** que pueden verse afectadas
-3. **Revisar ADRs** para decisiones arquitectónicas
-4. **Analizar impacto** en la puntuación del proyecto (9/10)
+1. **Sequential Thinking** - Analizar con pensamientos estructurados
+2. **Consultar entidades relacionadas** en el grafo de conocimiento
+3. **Verificar relaciones** que pueden verse afectadas
+4. **ADR Analysis** - Revisar ADRs para decisiones arquitectónicas
+5. **Supabase MCP** - Validar esquema y queries (si aplica)
+6. **Analizar impacto** en la puntuación del proyecto (9/10)
 
 ### Obligatorio DESPUÉS de Cambios Significativos
-1. **Actualizar observaciones** de entidades modificadas
+1. **Actualizar observaciones** de entidades modificadas en el grafo
 2. **Crear nuevas relaciones** si es necesario
 3. **Documentar decisiones** como ADR si es arquitectónico
 4. **Ejecutar análisis MCP** para validar cambios
+5. **Supabase MCP** - Validar impacto en base de datos (si aplica)
+6. **Sequential Thinking** - Reflexionar sobre resultados
 
-### Prohibido
+### Prohibido ABSOLUTAMENTE
+- ❌ Modificar código sin Sequential Thinking previo para casos complejos
 - ❌ Modificar código sin consultar el grafo de conocimiento
 - ❌ Ignorar relaciones existentes entre entidades
+- ❌ Cambiar esquema de Supabase sin validación MCP
 - ❌ Romper la arquitectura ECS documentada
 - ❌ Disminuir la puntuación del proyecto (9/10)
+- ❌ Omitir ADR Analysis en cambios arquitectónicos
 
-## 🎯 CHECKLIST MCP OBLIGATORIO
+## 🎯 CHECKLIST MCP OBLIGATORIO EXPANDIDO
 
-### Pre-Modificación
-- [ ] ✅ Consulté el grafo de conocimiento
-- [ ] ✅ Identifiqué entidades relacionadas
-- [ ] ✅ Verifiqué relaciones que se verán afectadas
-- [ ] ✅ Revisé ADRs relevantes
-- [ ] ✅ Analicé impacto arquitectónico
+### Pre-Modificación (OBLIGATORIO COMPLETAR TODOS)
+- [ ] ✅ **Sequential Thinking**: Analicé el problema con pensamientos estructurados
+- [ ] ✅ **Knowledge Graph**: Consulté el grafo de conocimiento
+- [ ] ✅ **Entidades**: Identifiqué entidades relacionadas
+- [ ] ✅ **Relaciones**: Verifiqué relaciones que se verán afectadas
+- [ ] ✅ **ADR Analysis**: Revisé ADRs relevantes
+- [ ] ✅ **Supabase MCP**: Validé esquema y queries (si aplica a base de datos)
+- [ ] ✅ **Impacto**: Analicé impacto arquitectónico completo
+- [ ] ✅ **ECS**: Verifiqué compatibilidad con arquitectura ECS
 
-### Post-Modificación
-- [ ] ✅ Actualicé observaciones en el grafo
-- [ ] ✅ Creé nuevas relaciones si es necesario
-- [ ] ✅ Documenté decisiones arquitectónicas
-- [ ] ✅ Ejecuté análisis MCP de validación
-- [ ] ✅ Mantuve puntuación del proyecto (9/10)
+### Durante Modificación
+- [ ] ✅ **Arquitectura**: Mantuve la arquitectura ECS intacta
+- [ ] ✅ **SOLID**: Apliqué principios SOLID
+- [ ] ✅ **TypeScript**: Usé tipado estricto
+- [ ] ✅ **Performance**: No degradé el rendimiento (~8KB build)
+- [ ] ✅ **Supabase**: Usé MCP para validar queries (si aplica)
+
+### Post-Modificación (OBLIGATORIO COMPLETAR TODOS)
+- [ ] ✅ **Knowledge Graph**: Actualicé observaciones en el grafo
+- [ ] ✅ **Relaciones**: Creé nuevas relaciones si es necesario
+- [ ] ✅ **ADR**: Documenté decisiones arquitectónicas
+- [ ] ✅ **ADR Analysis**: Ejecuté análisis MCP de validación
+- [ ] ✅ **Supabase MCP**: Validé impacto en base de datos (si aplica)
+- [ ] ✅ **Sequential Thinking**: Reflexioné sobre resultados
+- [ ] ✅ **Puntuación**: Mantuve puntuación del proyecto (9/10)
+- [ ] ✅ **Deployment**: Validé readiness si aplica a producción
+
+## 📋 MATRIZ DE DECISIÓN MCP
+
+### ¿Cuándo usar cada MCP?
+
+| Escenario | Sequential Thinking | Knowledge Graph | ADR Analysis | Supabase MCP |
+|-----------|---------------------|-----------------|--------------|--------------|
+| Modificar componente ECS | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio | ❌ No aplica |
+| Añadir nueva entidad | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio | ❌ No aplica |
+| Modificar LeaderboardService | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio |
+| Cambiar esquema de BD | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio |
+| Optimizar query SQL | ✅ Recomendado | ✅ Obligatorio | ✅ Recomendado | ✅ Obligatorio |
+| Refactoring código | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio | ⚠️ Si afecta BD |
+| Bug fix simple | ⚠️ Opcional | ✅ Obligatorio | ⚠️ Recomendado | ❌ No aplica |
+| Deployment a producción | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio | ✅ Obligatorio |
+
+## 🔄 FLUJO DE TRABAJO COMPLETO CON MCPs
+
+### Ejemplo: Modificar Snake Entity
+
+```typescript
+// PASO 1: Sequential Thinking - Análisis inicial
+mcp_sequential-thinking_sequentialthinking({
+  thought: "Necesito modificar Snake para agregar nuevo comportamiento. Primero debo entender el impacto en la arquitectura ECS...",
+  nextThoughtNeeded: true,
+  thoughtNumber: 1,
+  totalThoughts: 5
+})
+
+// PASO 2: Knowledge Graph - Consultar contexto
+const snakeEntity = await mcp_memory_aim_open_nodes({
+  names: ["Snake", "Position", "Velocity", "MovementSystem"]
+})
+
+// PASO 3: ADR Analysis - Validar arquitectura
+const architecturalContext = await mcp_adr-analysis_get_architectural_context({
+  filePath: "src/entities/Snake.ts",
+  includeCompliance: true
+})
+
+// PASO 4: Implementar cambios (con toda la información)
+// ... modificaciones al código ...
+
+// PASO 5: Actualizar Knowledge Graph
+await mcp_memory_aim_add_observations({
+  observations: [{
+    entityName: "Snake",
+    contents: ["Añadido nuevo comportamiento X", "Mantiene compatibilidad ECS"]
+  }]
+})
+
+// PASO 6: Sequential Thinking - Reflexión
+mcp_sequential-thinking_sequentialthinking({
+  thought: "Los cambios mantienen la arquitectura ECS, no degradan el rendimiento y están documentados en el grafo de conocimiento",
+  nextThoughtNeeded: false,
+  thoughtNumber: 5,
+  totalThoughts: 5
+})
+
+// PASO 7: ADR Analysis - Validación final
+await mcp_adr-analysis_compare_adr_progress({
+  adrDirectory: "docs/adrs",
+  deepCodeAnalysis: true
+})
+```
 
 ---
 
-**🧠 RECORDATORIO CRÍTICO**: El MCP Knowledge Graph contiene TODO el contexto del proyecto ReSnake. SIEMPRE consultarlo antes de cualquier modificación. El conocimiento está persistido y debe ser la fuente de verdad para entender el impacto de cualquier cambio en la arquitectura ECS y los servicios del proyecto.
+**🧠 RECORDATORIO CRÍTICO TRIPLE**:
+
+1. **Sequential Thinking**: OBLIGATORIO para análisis complejo. Pensar primero, actuar después.
+2. **Knowledge Graph**: Contiene TODO el contexto del proyecto. Consultarlo SIEMPRE.
+3. **ADR Analysis**: Validar impacto arquitectónico ANTES de cambios significativos.
+4. **Supabase MCP**: Validar esquema y queries ANTES de modificar base de datos.
+
+**El conocimiento está persistido y debe ser la fuente de verdad para entender el impacto de cualquier cambio en la arquitectura ECS y los servicios del proyecto.**
+
+**NO MODIFICAR SIN COMPLETAR EL CHECKLIST MCP OBLIGATORIO EXPANDIDO.**
 

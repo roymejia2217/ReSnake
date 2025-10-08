@@ -152,21 +152,31 @@ mcp_memory_aim_open_nodes({names: ["GameEngine", "ECS_Architecture"]})
 
 ### ANTES DE MODIFICAR CUALQUIER ARCHIVO:
 
-1. **LEER COMPLETAMENTE** el archivo y entender su propósito en la arquitectura ECS
-2. **CONSULTAR** el grafo de conocimiento para entender relaciones
-3. **VERIFICAR** que la modificación respeta los principios SOLID
-4. **MANTENER** la separación entre componentes, sistemas y entidades
-5. **PRESERVAR** la funcionalidad existente
-6. **DOCUMENTAR** cambios significativos
+1. **SEQUENTIAL THINKING** - Analizar con pensamientos estructurados (casos complejos)
+2. **LEER COMPLETAMENTE** el archivo y entender su propósito en la arquitectura ECS
+3. **CONSULTAR** el grafo de conocimiento para entender relaciones
+4. **ADR ANALYSIS** - Validar impacto arquitectónico
+5. **SUPABASE MCP** - Validar esquema y queries (si aplica)
+6. **VERIFICAR** que la modificación respeta los principios SOLID
+7. **MANTENER** la separación entre componentes, sistemas y entidades
+8. **PRESERVAR** la funcionalidad existente
+9. **DOCUMENTAR** cambios significativos
 
 ### PATRONES PROHIBIDOS:
+- ❌ Modificar código sin Sequential Thinking previo (casos complejos)
 - ❌ Modificar la estructura ECS sin justificación
+- ❌ Cambiar base de datos sin validar con Supabase MCP
 - ❌ Hardcodear valores en lugar de usar constants.ts
 - ❌ Crear dependencias circulares entre servicios
 - ❌ Romper la separación de responsabilidades
 - ❌ Ignorar el tipado estricto de TypeScript
+- ❌ Omitir ADR Analysis en cambios arquitectónicos
 
 ### PATRONES OBLIGATORIOS:
+- ✅ Sequential Thinking para análisis complejo
+- ✅ Consultar grafo de conocimiento MCP (SIEMPRE)
+- ✅ ADR Analysis para cambios arquitectónicos
+- ✅ Supabase MCP para cambios de base de datos
 - ✅ Usar TypeScript con tipado estricto
 - ✅ Seguir la arquitectura ECS establecida
 - ✅ Mantener servicios singleton reutilizables
@@ -243,7 +253,9 @@ PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server
   "mcpServers": {
     "memory": { "command": "npx", "args": ["-y", "mcp-knowledge-graph"] },
     "mind-map": { "command": "npx", "args": ["-y", "mind-map-mcp"] },
-    "adr-analysis": { "command": "npx", "args": ["-y", "mcp-adr-analysis-server"] }
+    "adr-analysis": { "command": "npx", "args": ["-y", "mcp-adr-analysis-server"] },
+    "sequential-thinking": { "command": "npx", "args": ["-y", "mcp-sequential-thinking"] },
+    "supabase": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-supabase"] }
   }
 }
 ```
@@ -270,5 +282,17 @@ PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server
 
 ---
 
-**⚠️ RECORDATORIO CRÍTICO**: Este proyecto tiene una arquitectura ECS bien definida y un grafo de conocimiento activo. SIEMPRE consultar el contexto completo antes de hacer modificaciones. El conocimiento está persistido en el sistema MCP y debe ser consultado para entender el impacto de cualquier cambio.
+**⚠️ RECORDATORIO CRÍTICO - PROTOCOLO MCP COMPLETO**:
+
+**ANTES DE CUALQUIER MODIFICACIÓN:**
+1. **Sequential Thinking**: Analizar con pensamientos estructurados (casos complejos)
+2. **Knowledge Graph**: Consultar el grafo de conocimiento (SIEMPRE)
+3. **ADR Analysis**: Validar impacto arquitectónico (cambios arquitectónicos)
+4. **Supabase MCP**: Validar esquema y queries (cambios de base de datos)
+
+**Este proyecto tiene una arquitectura ECS bien definida (9/10) y un grafo de conocimiento activo con 29 entidades y 44 relaciones.**
+
+**SIEMPRE consultar el contexto completo antes de hacer modificaciones. El conocimiento está persistido en el sistema MCP y debe ser consultado para entender el impacto de cualquier cambio.**
+
+**NO MODIFICAR SIN COMPLETAR EL PROTOCOLO MCP.**
 

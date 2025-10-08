@@ -52,17 +52,26 @@ export class GameModeService {
         mode: 'classic',
         hasWallCollision: false,
         hasSpeedIncrease: false,
+        hasObstacles: false,
       },
       speed: {
         mode: 'speed',
         hasWallCollision: false,
         hasSpeedIncrease: true,
         speedIncrement: 10, // Reduce 10ms por cada comida
+        hasObstacles: false,
       },
       wall: {
         mode: 'wall',
         hasWallCollision: true,
         hasSpeedIncrease: false,
+        hasObstacles: false,
+      },
+      obstacles: {
+        mode: 'obstacles',
+        hasWallCollision: false,
+        hasSpeedIncrease: false,
+        hasObstacles: true,
       },
     };
 
@@ -79,7 +88,7 @@ export class GameModeService {
    * Obtiene todas las configuraciones de modos
    */
   getAllConfigs(): GameModeConfig[] {
-    return (['classic', 'speed', 'wall'] as GameMode[]).map(mode => this.getConfig(mode));
+    return (['classic', 'speed', 'wall', 'obstacles'] as GameMode[]).map(mode => this.getConfig(mode));
   }
 
   /**
@@ -116,10 +125,17 @@ export class GameModeService {
   }
 
   /**
+   * Verifica si el modo actual tiene obstáculos dinámicos
+   */
+  hasObstacles(): boolean {
+    return this.getCurrentConfig().hasObstacles || false;
+  }
+
+  /**
    * Valida si un modo es válido
    */
   private isValidMode(mode: string): mode is GameMode {
-    return ['classic', 'speed', 'wall'].includes(mode);
+    return ['classic', 'speed', 'wall', 'obstacles'].includes(mode);
   }
 
   /**

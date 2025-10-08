@@ -7,7 +7,7 @@
 /**
  * Modos de juego disponibles
  */
-export type GameMode = 'classic' | 'speed' | 'wall';
+export type GameMode = 'classic' | 'speed' | 'wall' | 'obstacles';
 
 /**
  * Información del usuario/jugador
@@ -43,6 +43,7 @@ export interface GameModeConfig {
   hasWallCollision: boolean; // Si colisionar con paredes termina el juego
   hasSpeedIncrease: boolean; // Si la velocidad aumenta con cada comida
   speedIncrement?: number; // Cuánto aumenta la velocidad (en ms)
+  hasObstacles?: boolean; // Si el modo incluye obstáculos dinámicos
 }
 
 /**

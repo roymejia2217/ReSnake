@@ -82,3 +82,48 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
     timeout = setTimeout(() => func(...args), wait);
   };
 }
+
+/**
+ * Calcula la distancia Manhattan entre dos posiciones
+ * (Distancia en línea recta horizontal + vertical)
+ */
+export function manhattanDistance(pos1: Position, pos2: Position): number {
+  return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
+}
+
+/**
+ * Genera una posición aleatoria segura para obstáculos
+ * Evita posiciones ocupadas y mantiene distancia mínima de posiciones críticas
+ */
+export function generateSafeObstaclePosition(
+  excludePositions: Position[],
+  criticalPositions: { position: Position; minDistance: number }[]
+): Position {
+  const size = GAME_CONFIG.BOARD_SIZE;
+  let position: Position;
+  let attempts = 0;
+  const maxAttempts = 100;
+  
+  do {
+    position = new Position(
+      Math.floor(Math.random() * size),
+      Math.floor(Math.random() * size)
+    );
+    attempts++;
+    
+    // Si no se encuentra posición después de muchos intentos, devolver cualquier posición válida
+    if (attempts >= maxAttempts) {
+      console.warn('Max attempts reached for obstacle placement, using fallback position');
+      break;
+    }
+  } while (
+    // Evitar posiciones ocupadas
+    excludePositions.some(p => p.equals(position)) ||
+    // Mantener distancia mínima de posiciones críticas
+    criticalPositions.some(critical => 
+      manhattanDistance(position, critical.position) < critical.minDistance
+    )
+  );
+  
+  return position;
+}

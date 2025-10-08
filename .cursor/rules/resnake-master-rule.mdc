@@ -10,21 +10,57 @@ alwaysApply: true
 
 ### ANTES DE CUALQUIER ACCIÓN EN EL PROYECTO:
 
-#### 1. CONSULTA OBLIGATORIA AL GRAFO DE CONOCIMIENTO
+#### 1. SEQUENTIAL THINKING - ANÁLISIS ESTRUCTURADO
 ```typescript
-// ✅ SIEMPRE EJECUTAR PRIMERO
+// ✅ OBLIGATORIO PRIMERO: Analizar con pensamientos estructurados
+mcp_sequential-thinking_sequentialthinking({
+  thought: "Análisis inicial: ¿Qué necesito modificar y cuál es el impacto en la arquitectura ECS?",
+  nextThoughtNeeded: true,
+  thoughtNumber: 1,
+  totalThoughts: 5
+})
+
+// Continuar con análisis completo antes de proceder
+```
+
+#### 2. CONSULTA OBLIGATORIA AL GRAFO DE CONOCIMIENTO
+```typescript
+// ✅ SIEMPRE EJECUTAR DESPUÉS de Sequential Thinking
 mcp_memory_aim_read_graph({}) // Leer contexto completo
 mcp_memory_aim_search_nodes({query: "componente_objetivo"}) // Buscar entidad específica
 ```
 
-#### 2. ANÁLISIS ARQUITECTÓNICO MCP
-```bash
-# ✅ SIEMPRE EJECUTAR
-npx mcp-adr-analysis-server --test # Health check
-PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server # Análisis completo
+#### 3. ANÁLISIS ARQUITECTÓNICO MCP ADR
+```typescript
+// ✅ OBLIGATORIO: Validar impacto arquitectónico
+mcp_adr-analysis_get_architectural_context({
+  filePath: "src/path/to/file.ts",
+  includeCompliance: true
+})
+
+// ✅ OBLIGATORIO: Revisar ADRs existentes
+mcp_adr-analysis_review_existing_adrs({
+  adrDirectory: "docs/adrs",
+  projectPath: "C:\\Users\\Roy\\Downloads\\ReSnake",
+  analysisDepth: "comprehensive"
+})
 ```
 
-#### 3. LECTURA OBLIGATORIA DE ARCHIVOS
+#### 4. SUPABASE MCP - SI APLICA A BASE DE DATOS
+```typescript
+// ✅ OBLIGATORIO: Si modificas LeaderboardService o queries
+mcp_supabase_list_tables({
+  project_id: "project_id",
+  schemas: ["public"]
+})
+
+mcp_supabase_execute_sql({
+  project_id: "project_id",
+  query: "SELECT * FROM leaderboard LIMIT 5"
+})
+```
+
+#### 5. LECTURA OBLIGATORIA DE ARCHIVOS
 **LEER COMPLETAMENTE antes de modificar:**
 - `docs/adrs/001-ecs-architecture-decision.md` - Arquitectura ECS
 - `docs/ARCHITECTURE_ANALYSIS.md` - Análisis completo
@@ -169,7 +205,9 @@ Food → [Position, Renderable, Collidable] (uses)
 ## ⚠️ REGLAS DE MODIFICACIÓN ESTRICTAS
 
 ### PROHIBIDO ABSOLUTO
+- ❌ Modificar código sin Sequential Thinking previo (casos complejos)
 - ❌ Modificar código sin consultar el grafo de conocimiento
+- ❌ Cambiar base de datos sin validar con Supabase MCP
 - ❌ Romper la arquitectura ECS establecida
 - ❌ Degradar la puntuación del proyecto (9/10)
 - ❌ Exceder el tamaño de build (~8KB)
@@ -177,9 +215,13 @@ Food → [Position, Renderable, Collidable] (uses)
 - ❌ Ignorar principios SOLID
 - ❌ Romper responsividad móvil
 - ❌ Dañar el Easter Egg romántico
+- ❌ Omitir ADR Analysis en cambios arquitectónicos
 
 ### OBLIGATORIO SIEMPRE
+- ✅ Sequential Thinking para análisis complejo
 - ✅ Consultar grafo de conocimiento MCP
+- ✅ ADR Analysis para cambios arquitectónicos
+- ✅ Supabase MCP para cambios de base de datos
 - ✅ Leer archivos completos antes de modificar
 - ✅ Mantener arquitectura ECS
 - ✅ Preservar funcionalidades críticas
@@ -189,15 +231,17 @@ Food → [Position, Renderable, Collidable] (uses)
 - ✅ Preservar Easter Egg romántico
 - ✅ Documentar cambios arquitectónicos
 
-## 🔍 CHECKLIST OBLIGATORIO
+## 🔍 CHECKLIST OBLIGATORIO EXPANDIDO
 
-### Pre-Modificación
-- [ ] ✅ Consulté el grafo de conocimiento MCP
-- [ ] ✅ Leí completamente el archivo objetivo
-- [ ] ✅ Entendí su rol en la arquitectura ECS
-- [ ] ✅ Verifiqué relaciones con otros componentes
-- [ ] ✅ Revisé ADRs relevantes
-- [ ] ✅ Analicé impacto en puntuación del proyecto
+### Pre-Modificación (COMPLETAR TODOS)
+- [ ] ✅ **Sequential Thinking**: Analicé con pensamientos estructurados
+- [ ] ✅ **Knowledge Graph**: Consulté el grafo de conocimiento MCP
+- [ ] ✅ **ADR Analysis**: Revisé ADRs relevantes
+- [ ] ✅ **Supabase MCP**: Validé esquema/queries (si aplica)
+- [ ] ✅ **Lectura**: Leí completamente el archivo objetivo
+- [ ] ✅ **Arquitectura ECS**: Entendí su rol en la arquitectura
+- [ ] ✅ **Relaciones**: Verifiqué relaciones con otros componentes
+- [ ] ✅ **Impacto**: Analicé impacto en puntuación del proyecto (9/10)
 
 ### Durante Modificación
 - [ ] ✅ Mantuve arquitectura ECS
@@ -206,13 +250,17 @@ Food → [Position, Renderable, Collidable] (uses)
 - [ ] ✅ Seguí principios SOLID
 - [ ] ✅ No hardcodeé valores
 - [ ] ✅ Mantuve responsividad móvil
+- [ ] ✅ Validé queries con Supabase MCP (si aplica)
 
-### Post-Modificación
-- [ ] ✅ Actualicé grafo de conocimiento
-- [ ] ✅ Documenté cambios significativos
-- [ ] ✅ Ejecuté análisis MCP de validación
-- [ ] ✅ Verifiqué que puntuación se mantiene (9/10)
-- [ ] ✅ Confirmé que build size no excede ~8KB
+### Post-Modificación (COMPLETAR TODOS)
+- [ ] ✅ **Knowledge Graph**: Actualicé grafo de conocimiento
+- [ ] ✅ **ADR Analysis**: Ejecuté análisis MCP de validación
+- [ ] ✅ **Supabase MCP**: Validé impacto en BD (si aplica)
+- [ ] ✅ **Sequential Thinking**: Reflexioné sobre resultados
+- [ ] ✅ **Documentación**: Documenté cambios significativos
+- [ ] ✅ **Puntuación**: Verifiqué que se mantiene (9/10)
+- [ ] ✅ **Build Size**: Confirmé que no excede ~8KB
+- [ ] ✅ **Testing**: Validé funcionalidad completa
 
 ## 🎯 OBJETIVOS DEL PROYECTO
 
@@ -253,7 +301,9 @@ PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server
   "mcpServers": {
     "memory": {"command": "npx", "args": ["-y", "mcp-knowledge-graph"]},
     "mind-map": {"command": "npx", "args": ["-y", "mind-map-mcp"]},
-    "adr-analysis": {"command": "npx", "args": ["-y", "mcp-adr-analysis-server"]}
+    "adr-analysis": {"command": "npx", "args": ["-y", "mcp-adr-analysis-server"]},
+    "sequential-thinking": {"command": "npx", "args": ["-y", "mcp-sequential-thinking"]},
+    "supabase": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-supabase"]}
   }
 }
 ```
@@ -262,7 +312,22 @@ PROJECT_PATH=C:\Users\Roy\Downloads\ReSnake npx mcp-adr-analysis-server
 
 ## 🎯 RECORDATORIO FINAL
 
-**ESTE PROYECTO TIENE UNA ARQUITECTURA ECS EXCELENTE (9/10) CON UN GRAFO DE CONOCIMIENTO COMPLETO. SIEMPRE CONSULTAR EL CONTEXTO MCP ANTES DE CUALQUIER MODIFICACIÓN. EL CONOCIMIENTO ESTÁ PERSISTIDO Y DEBE SER LA FUENTE DE VERDAD PARA TODAS LAS DECISIONES.**
+**ESTE PROYECTO TIENE UNA ARQUITECTURA ECS EXCELENTE (9/10) CON UN GRAFO DE CONOCIMIENTO COMPLETO.**
 
-**NO MODIFICAR SIN COMPRENDER PRIMERO LA ARQUITECTURA Y EL IMPACTO EN EL PROYECTO COMPLETO.**
+**PROTOCOLO MCP ESTRICTO:**
+1. **Sequential Thinking**: SIEMPRE para análisis complejo - Pensar primero, actuar después
+2. **Knowledge Graph**: SIEMPRE consultar antes de modificar - Fuente de verdad del contexto
+3. **ADR Analysis**: SIEMPRE para cambios arquitectónicos - Validar impacto
+4. **Supabase MCP**: SIEMPRE para cambios de BD - Validar esquema y queries
+
+**EL CONOCIMIENTO ESTÁ PERSISTIDO Y DEBE SER LA FUENTE DE VERDAD PARA TODAS LAS DECISIONES.**
+
+**NO MODIFICAR SIN:**
+- ✅ Completar Sequential Thinking (casos complejos)
+- ✅ Consultar el grafo de conocimiento
+- ✅ Validar con ADR Analysis (cambios arquitectónicos)
+- ✅ Validar con Supabase MCP (cambios de BD)
+- ✅ Completar el checklist obligatorio expandido
+
+**COMPRENDER PRIMERO, ACTUAR DESPUÉS.**
 

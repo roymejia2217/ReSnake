@@ -10,6 +10,6 @@ export class Collidable implements Component {
   readonly type = 'Collidable';
   
   constructor(
-    public layer: 'snake' | 'food' | 'wall' = 'snake'
+    public layer: 'snake' | 'food' | 'wall' | 'obstacle' = 'snake'
   ) {}
 }

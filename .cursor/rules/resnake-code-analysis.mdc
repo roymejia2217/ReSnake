@@ -11,11 +11,40 @@ alwaysApply: true
 ### Pre-Análisis Requerido
 **ANTES de tocar cualquier línea de código:**
 
-1. **LEER COMPLETAMENTE** el archivo objetivo
-2. **IDENTIFICAR** su rol en la arquitectura ECS
-3. **CONSULTAR** el grafo de conocimiento MCP
-4. **ENTENDER** las relaciones con otros componentes
-5. **VERIFICAR** que la modificación respeta SOLID
+1. **SEQUENTIAL THINKING** - Analizar con pensamientos estructurados (casos complejos)
+2. **LEER COMPLETAMENTE** el archivo objetivo
+3. **IDENTIFICAR** su rol en la arquitectura ECS
+4. **CONSULTAR** el grafo de conocimiento MCP
+5. **ADR ANALYSIS** - Validar impacto arquitectónico
+6. **SUPABASE MCP** - Validar esquema y queries (si aplica a BD)
+7. **ENTENDER** las relaciones con otros componentes
+8. **VERIFICAR** que la modificación respeta SOLID
+
+### Ejemplo de Flujo de Análisis
+```typescript
+// PASO 1: Sequential Thinking
+mcp_sequential-thinking_sequentialthinking({
+  thought: "Voy a modificar [archivo]. Primero debo entender su rol en ECS y las dependencias...",
+  nextThoughtNeeded: true,
+  thoughtNumber: 1,
+  totalThoughts: 5
+})
+
+// PASO 2: Consultar Knowledge Graph
+mcp_memory_aim_search_nodes({query: "nombre_del_componente"})
+
+// PASO 3: ADR Analysis
+mcp_adr-analysis_get_architectural_context({
+  filePath: "src/path/to/file.ts",
+  includeCompliance: true
+})
+
+// PASO 4: Supabase MCP (si aplica)
+mcp_supabase_list_tables({
+  project_id: "project_id",
+  schemas: ["public"]
+})
+```
 
 ## 🏗️ PATRONES DE ARQUITECTURA ECS
 
@@ -330,9 +359,17 @@ private getGameOverMessage(): string {
 }
 ```
 
-## ⚠️ CHECKLIST OBLIGATORIO
+## ⚠️ CHECKLIST OBLIGATORIO EXPANDIDO
 
-### Antes de Commit
+### Antes de Modificar
+- [ ] ✅ **Sequential Thinking**: Analicé con pensamientos estructurados
+- [ ] ✅ **Knowledge Graph**: Consulté el grafo de conocimiento
+- [ ] ✅ **ADR Analysis**: Validé impacto arquitectónico
+- [ ] ✅ **Supabase MCP**: Validé esquema/queries (si aplica)
+- [ ] ✅ **Lectura**: Leí el archivo completamente
+- [ ] ✅ **ECS**: Identifiqué su rol en la arquitectura
+
+### Durante Modificación
 - [ ] ✅ Código sigue arquitectura ECS
 - [ ] ✅ Tipado estricto de TypeScript
 - [ ] ✅ No hay valores hardcodeados
@@ -341,6 +378,12 @@ private getGameOverMessage(): string {
 - [ ] ✅ Sin dependencias circulares
 - [ ] ✅ Manejo de errores apropiado
 - [ ] ✅ Documentación JSDoc actualizada
+
+### Antes de Commit
+- [ ] ✅ **Knowledge Graph**: Actualicé observaciones
+- [ ] ✅ **ADR Analysis**: Ejecuté validación MCP
+- [ ] ✅ **Supabase MCP**: Validé impacto en BD (si aplica)
+- [ ] ✅ **Sequential Thinking**: Reflexioné sobre resultados
 
 ### Análisis de Impacto
 - [ ] ✅ Cambios no afectan otros sistemas
@@ -352,5 +395,14 @@ private getGameOverMessage(): string {
 
 ---
 
-**🎯 RECORDATORIO**: Este análisis debe ejecutarse ANTES de cualquier modificación de código. El proyecto ReSnake tiene una arquitectura ECS bien establecida que debe ser preservada y respetada en todo momento.
+**🎯 RECORDATORIO CRÍTICO**: 
+
+1. **Sequential Thinking PRIMERO** para análisis complejo
+2. **Knowledge Graph SIEMPRE** antes de modificar
+3. **ADR Analysis** para cambios arquitectónicos
+4. **Supabase MCP** para cambios de base de datos
+
+**Este análisis debe ejecutarse ANTES de cualquier modificación de código. El proyecto ReSnake tiene una arquitectura ECS bien establecida que debe ser preservada y respetada en todo momento.**
+
+**NO MODIFICAR SIN COMPLETAR EL CHECKLIST EXPANDIDO.**
 

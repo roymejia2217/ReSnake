@@ -74,3 +74,11 @@ export const SKIN_CONFIG = {
     STORAGE_KEY: 'skin-notifications-shown'
   }
 } as const;
+
+// Configuración del Modo Obstáculos
+export const OBSTACLE_CONFIG = {
+  COLOR: '#8b4513', // Marrón tipo caja de madera
+  INITIAL_COUNT: 3, // Número inicial de obstáculos
+  MIN_DISTANCE_FROM_SNAKE: 3, // Distancia mínima desde la cabeza de la serpiente
+  MIN_DISTANCE_FROM_FOOD: 2, // Distancia mínima desde la comida
+} as const;

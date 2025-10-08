@@ -82,7 +82,8 @@ export class StorageService {
         maxScoresByMode: {
           classic: mode === 'classic' ? score : 0,
           speed: mode === 'speed' ? score : 0,
-          wall: mode === 'wall' ? score : 0
+          wall: mode === 'wall' ? score : 0,
+          obstacles: mode === 'obstacles' ? score : 0
         }
       });
       return;
