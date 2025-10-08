@@ -700,7 +700,7 @@ class Game {
    */
   private handleSuperFoodEaten(): void {
     this.scoreService.add(SUPER_FOOD_CONFIG.POINTS);
-    this.soundService.play('eat');
+    this.soundService.play('super_eat');
     
     // Desaparecer supermanzana
     this.superFoodService.despawn();

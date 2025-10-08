@@ -719,36 +719,58 @@ export class RenderSystem implements System {
   }
   
   /**
-   * ✅ NUEVO: Renderiza supermanzana usando sprite (preparado para futura implementación)
+   * ✅ CORREGIDO: Renderiza supermanzana usando sprite como imagen única de 36x36
    */
   private renderSuperFoodWithSprite(
     coveredCells: {x: number, y: number}[], 
     sprite: HTMLImageElement, 
     scale: number
   ): void {
+    if (coveredCells.length === 0) return;
+    
+    // La supermanzana ocupa 4 celdas (2x2), tomamos la posición de la primera celda (esquina superior izquierda)
+    const topLeftCell = coveredCells[0];
+    
     // Animación de pulsación más intensa para supermanzana
     const pulseScale = 1 + Math.sin(this.currentTime / 300) * 0.15;
     const totalScale = scale * pulseScale;
     
-    // Renderizar cada celda con sprite
-    coveredCells.forEach(cell => {
-      const centerX = cell.x * this.cellSize + this.cellSize / 2;
-      const centerY = cell.y * this.cellSize + this.cellSize / 2;
-      
-      // Sombra más intensa para supermanzana
-      this.ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
-      this.ctx.shadowBlur = this.cellSize * 0.4;
-      this.ctx.shadowOffsetX = 0;
-      this.ctx.shadowOffsetY = 0;
-      
-      this.drawItemSprite(sprite, centerX, centerY, totalScale);
-      
-      // Reset sombra
-      this.ctx.shadowColor = 'transparent';
-      this.ctx.shadowBlur = 0;
-      this.ctx.shadowOffsetX = 0;
-      this.ctx.shadowOffsetY = 0;
-    });
+    // Calcular posición de la esquina superior izquierda de la supermanzana
+    const superFoodX = topLeftCell.x * this.cellSize;
+    const superFoodY = topLeftCell.y * this.cellSize;
+    
+    // Tamaño de la supermanzana (2x2 celdas = 36x36 píxeles)
+    const superFoodSize = this.cellSize * SUPER_FOOD_CONFIG.SIZE;
+    
+    // Sombra más intensa para supermanzana
+    this.ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+    this.ctx.shadowBlur = this.cellSize * 0.4;
+    this.ctx.shadowOffsetX = 0;
+    this.ctx.shadowOffsetY = 0;
+    
+    // Renderizar el sprite completo de supermanzana como una sola imagen
+    this.ctx.save();
+    this.ctx.translate(
+      superFoodX + superFoodSize / 2, 
+      superFoodY + superFoodSize / 2
+    );
+    this.ctx.scale(totalScale, totalScale);
+    
+    this.ctx.drawImage(
+      sprite,
+      -superFoodSize / 2,
+      -superFoodSize / 2,
+      superFoodSize,
+      superFoodSize
+    );
+    
+    this.ctx.restore();
+    
+    // Reset sombra
+    this.ctx.shadowColor = 'transparent';
+    this.ctx.shadowBlur = 0;
+    this.ctx.shadowOffsetX = 0;
+    this.ctx.shadowOffsetY = 0;
   }
   
   /**

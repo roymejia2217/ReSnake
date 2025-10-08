@@ -36,10 +36,10 @@ export class ItemSpriteService {
    * Realiza la carga de sprites para items
    */
   private async performItemSpriteLoading(): Promise<void> {
-    const itemTypes: ItemSpriteType[] = ['apple'];
+    const itemTypes: ItemSpriteType[] = ['apple', 'super_apple'];
     
     const loadPromises = itemTypes.map(type => 
-      this.loadItemSprite(type, `${this.basePath}sprites/items/${type}.png`)
+      this.loadItemSprite(type, `${this.basePath}sprites/items/${type === 'super_apple' ? 'superapple' : type}.png`)
     );
     
     await Promise.all(loadPromises);
@@ -78,14 +78,14 @@ export class ItemSpriteService {
    * Verifica si todos los sprites están cargados
    */
   areAllSpritesLoaded(): boolean {
-    return this.sprites.size === 1; // Actualmente solo apple
+    return this.sprites.size === 2; // apple y super_apple
   }
   
   /**
    * Obtiene el progreso de carga (0-1)
    */
   getLoadingProgress(): number {
-    return this.sprites.size / 1; // Actualmente solo apple
+    return this.sprites.size / 2; // apple y super_apple
   }
   
   /**

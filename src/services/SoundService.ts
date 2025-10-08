@@ -21,6 +21,7 @@ export class SoundService {
   private initializeSounds(): void {
     const basePath = import.meta.env.BASE_URL;
     this.createSound('eat', `${basePath}sounds/ap.mp3`);
+    this.createSound('super_eat', `${basePath}sounds/sap.mp3`);
     this.createSound('gameover', `${basePath}sounds/end.mp3`);
   }
   
